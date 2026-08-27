@@ -3,7 +3,6 @@ import { Header } from "./components/Header";
 import { UmbrellaScoreCard } from "./components/UmbrellaScoreCard";
 import { TelemetryGrid } from "./components/TelemetryGrid";
 import { ShelteredRoutePlanner } from "./components/ShelteredRoutePlanner";
-import { TransitTelemetry } from "./components/TransitTelemetry";
 import { SingaporeDataGovTelemetry } from "./components/SingaporeDataGovTelemetry";
 import { NotificationBanner } from "./components/NotificationBanner";
 import { WindPhysicsSimulator } from "./components/WindPhysicsSimulator";
@@ -226,9 +225,6 @@ export default function App() {
 
         {/* data.gov.sg National Environmental & Weather Telemetry (4-Day Outlook, 24-Hr Matrix, PSI & PM2.5, Islandwide Sensors) */}
         {weather && <SingaporeDataGovTelemetry weather={weather} />}
-
-        {/* LTA DataMall 2.0 Live Transit & Shelter Telemetry */}
-        <TransitTelemetry />
       </main>
 
       {/* Modals & Simulators */}

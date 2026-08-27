@@ -1,7 +1,6 @@
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import { ltaRouter } from "./api/lta";
 import { geminiRouter } from "./api/gemini";
 import { datagovsgRouter, fetchDataGovSg } from "./api/datagovsg";
 
@@ -10,9 +9,7 @@ const PORT = 3000;
 
 app.use(express.json());
 
-// Mount Routers: LTA DataMall 2.0, Data.gov.sg, and Gemini
-app.use("/api/lta", ltaRouter);
-app.use("/api/transport", ltaRouter);
+// Mount Routers: Data.gov.sg and Gemini
 app.use("/api/datagov", datagovsgRouter);
 app.use("/api/environment", datagovsgRouter);
 app.use("/api/gemini", geminiRouter);
