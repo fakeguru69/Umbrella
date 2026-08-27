@@ -3,6 +3,7 @@ import { Header } from "./components/Header";
 import { UmbrellaScoreCard } from "./components/UmbrellaScoreCard";
 import { TelemetryGrid } from "./components/TelemetryGrid";
 import { ShelteredRoutePlanner } from "./components/ShelteredRoutePlanner";
+import { TransitTelemetry } from "./components/TransitTelemetry";
 import { NotificationBanner } from "./components/NotificationBanner";
 import { WindPhysicsSimulator } from "./components/WindPhysicsSimulator";
 import { StationRadarModal } from "./components/StationRadarModal";
@@ -221,6 +222,9 @@ export default function App() {
           currentArea={weather?.location.region || currentArea}
           advice={advice}
         />
+
+        {/* LTA DataMall 2.0 Live Transit & Shelter Telemetry */}
+        <TransitTelemetry />
       </main>
 
       {/* Modals & Simulators */}
