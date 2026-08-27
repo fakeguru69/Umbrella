@@ -99,7 +99,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="font-black text-2xl tracking-tighter uppercase font-['Outfit',sans-serif] text-[#FFF500]">
-                UMBRELLA ORACLE
+                UMBRELLA ORACLER
               </span>
               <span className="flex items-center gap-1 text-[10px] bg-[#FFF500] text-[#0040D6] px-2 py-0.5 font-mono font-black border border-black uppercase">
                 <Radio className="w-3 h-3 animate-pulse text-red-600" />

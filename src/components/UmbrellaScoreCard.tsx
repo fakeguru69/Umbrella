@@ -85,7 +85,7 @@ export const UmbrellaScoreCard: React.FC<UmbrellaScoreCardProps> = ({
   };
 
   const handleShare = () => {
-    const text = `☂️ Umbrella Oracle Report for ${weather.location.region}: Decision: "${isRecommendedTake ? "TAKE IT" : "LEAVE IT"}" (Index ${score}/100 - "${advice?.verdict || "TAKE IT!"}")\nRoast: "${advice?.roast || ""}"`;
+    const text = `☂️ Umbrella Oracler Report for ${weather.location.region}: Decision: "${isRecommendedTake ? "TAKE IT" : "LEAVE IT"}" (Index ${score}/100 - "${advice?.verdict || "TAKE IT!"}")\nRoast: "${advice?.roast || ""}"`;
     if (navigator.clipboard) {
       navigator.clipboard.writeText(text);
       setCopied(true);
@@ -104,7 +104,7 @@ export const UmbrellaScoreCard: React.FC<UmbrellaScoreCardProps> = ({
         DECISION
       </div>
       <div className="absolute bottom-2 right-6 text-[140px] sm:text-[200px] leading-none font-black italic opacity-10 uppercase pointer-events-none select-none text-[#FFF500]">
-        ORACLE
+        ORACLER
       </div>
 
       {/* Header bar */}

@@ -1,5 +1,5 @@
 {
-  "name": "Umbrella Oracle",
+  "name": "Umbrella Oracler",
   "description": "Quirky real-time umbrella and UV advisory with live weather station telemetry, rain radar, UV burn indices, and witty AI forecasts.",
   "requestFramePermissions": ["geolocation"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

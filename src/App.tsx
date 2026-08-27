@@ -273,7 +273,7 @@ export default function App() {
           </span>
         </div>
         <p className="text-xs uppercase tracking-[0.2em] font-bold text-[#FFF500]/80 mt-2">
-          UMBRELLA ORACLE // NEVER GET SOAKED, NEVER GET CRISPY.
+          UMBRELLA ORACLER // NEVER GET SOAKED, NEVER GET CRISPY.
         </p>
       </footer>
     </div>
