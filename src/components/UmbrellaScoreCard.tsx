@@ -170,239 +170,172 @@ export const UmbrellaScoreCard: React.FC<UmbrellaScoreCardProps> = ({
         {/* --- UMBRELLA DECISION QUESTION BOX (LEAVE IT OR TAKE IT) --- */}
         <div
           id="umbrella-decision-box"
-          className="max-w-3xl mx-auto my-6 p-5 sm:p-7 bg-black border-4 sm:border-[5px] border-[#FFF500] shadow-[8px_8px_0px_0px_#000000] text-[#FFF500]"
+          className="max-w-4xl mx-auto my-8 p-6 sm:p-9 bg-black border-4 sm:border-[6px] border-[#FFF500] shadow-[10px_10px_0px_0px_#000000] text-[#FFF500]"
         >
-          {/* Question Box Header */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-5 border-b-4 border-[#FFF500]">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="bg-[#FFF500] text-[#0040D6] font-black text-xs px-2.5 py-0.5 border-2 border-black font-mono">
-                  STEP 1
+          {/* Question Box Header - ULTRA BOLD & MASSIVE */}
+          <div className="pb-5 mb-6 border-b-4 border-[#FFF500] text-center sm:text-left">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+              <div className="inline-flex items-center gap-2">
+                <span className="bg-[#FFF500] text-[#0040D6] font-black text-sm sm:text-base px-3 py-1 border-2 border-black font-mono shadow-[2px_2px_0px_0px_#000000]">
+                  ⚡ ACTION REQUIRED
                 </span>
-                <span className="text-xs uppercase font-mono font-black tracking-widest text-[#FFF500]/80">
-                  YOUR CALL
+                <span className="text-xs sm:text-sm uppercase font-mono font-black tracking-widest text-[#FFF500]">
+                  TAP TO CHOOSE YOUR MOVE
                 </span>
               </div>
-              <h3 className="font-black text-lg sm:text-2xl uppercase tracking-tight font-['Outfit',sans-serif] text-white">
-                UMBRELLA DECISION: LEAVE IT OR TAKE IT?
-              </h3>
+
+              <div className="inline-block bg-[#002FA7] px-3 py-1 border-2 border-[#FFF500] font-mono text-xs font-black uppercase text-[#FFF500]">
+                ORACLE ACCURACY: {score}%
+              </div>
             </div>
 
-            {/* Quick Segment Switcher Pill */}
-            <div className="flex items-center bg-[#002FA7] p-1 border-2 border-[#FFF500] gap-1">
-              <button
-                type="button"
-                onClick={() => {
-                  setUserDecision("leave_it");
-                  sounds.playPop();
-                }}
-                className={`px-3 py-1.5 text-xs font-mono font-black uppercase transition-all flex items-center gap-1.5 cursor-pointer ${
-                  userDecision === "leave_it"
-                    ? "bg-[#FFF500] text-[#0040D6] border border-black shadow-[2px_2px_0px_0px_#000000]"
-                    : "text-[#FFF500] hover:bg-white/10"
-                }`}
-              >
-                <span>🚫 LEAVE IT</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setUserDecision("take_it");
-                  sounds.playPop();
-                }}
-                className={`px-3 py-1.5 text-xs font-mono font-black uppercase transition-all flex items-center gap-1.5 cursor-pointer ${
-                  userDecision === "take_it"
-                    ? "bg-[#FFF500] text-[#0040D6] border border-black shadow-[2px_2px_0px_0px_#000000]"
-                    : "text-[#FFF500] hover:bg-white/10"
-                }`}
-              >
-                <span>☂️ TAKE IT</span>
-              </button>
-            </div>
+            {/* Massive Heading */}
+            <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black italic uppercase tracking-tight font-['Outfit',sans-serif] text-white leading-tight mt-2 drop-shadow-[2px_2px_0px_#0040D6]">
+              UMBRELLA DECISION: <span className="text-[#FFF500] underline decoration-[#0040D6]">LEAVE IT</span> OR <span className="text-[#FFF500] underline decoration-[#0040D6]">TAKE IT</span>?
+            </h2>
           </div>
 
-          {/* Prompt instruction for user */}
-          <div className="flex items-center justify-between text-xs font-mono font-black uppercase text-[#FFF500] mb-3">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 bg-[#FFF500] animate-ping" />
-              CLICK EITHER BUTTON BELOW TO LOCK IN YOUR CHOICE:
-            </span>
-            <span className="hidden sm:inline-block bg-black px-2 py-0.5 border border-[#FFF500] text-[10px]">
-              {userDecision === (isRecommendedTake ? "take_it" : "leave_it")
-                ? "AGREE WITH ORACLE"
-                : "OVERRULING ORACLE"}
-            </span>
-          </div>
-
-          {/* 2-Option Interactive Big Buttons (LEAVE IT vs TAKE IT) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-            {/* OPTION 1: LEAVE IT */}
-            <div
+          {/* 2-Option Interactive Big Action Buttons */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-7">
+            {/* OPTION 1: LEAVE IT BUTTON */}
+            <button
+              type="button"
+              id="btn-decision-leave-it"
               onClick={() => {
                 setUserDecision("leave_it");
                 sounds.playPop();
               }}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  setUserDecision("leave_it");
-                  sounds.playPop();
-                }
-              }}
-              className={`group p-5 border-4 cursor-pointer text-left transition-all duration-150 relative flex flex-col justify-between select-none ${
+              className={`w-full text-left p-6 sm:p-7 border-4 sm:border-[5px] transition-all duration-150 relative flex flex-col justify-between cursor-pointer active:translate-x-1 active:translate-y-1 ${
                 userDecision === "leave_it"
-                  ? "bg-[#0037B8] border-[#FFF500] text-[#FFF500] shadow-[6px_6px_0px_0px_#FFF500] scale-[1.01]"
-                  : "bg-slate-950 border-slate-700 text-slate-300 hover:border-[#FFF500] hover:bg-slate-900 shadow-[4px_4px_0px_0px_#000000] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_#FFF500]"
+                  ? "bg-[#0037B8] border-[#FFF500] text-[#FFF500] shadow-[8px_8px_0px_0px_#FFF500] ring-4 ring-[#FFF500]/50"
+                  : "bg-neutral-950 border-neutral-700 text-neutral-300 hover:border-[#FFF500] hover:bg-neutral-900 shadow-[5px_5px_0px_0px_#000000] hover:shadow-[7px_7px_0px_0px_#FFF500]"
               }`}
             >
-              {/* Top Row: Radio circle + Oracle badge */}
-              <div className="flex justify-between items-center mb-3">
-                <div className="flex items-center gap-2">
-                  <div
-                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                      userDecision === "leave_it"
-                        ? "border-black bg-[#FFF500] text-[#0040D6]"
-                        : "border-slate-500 bg-black text-transparent group-hover:border-[#FFF500]"
-                    }`}
-                  >
-                    <Check className="w-4 h-4 stroke-[4]" />
-                  </div>
-                  <span className="text-2xl">🚫⛱️</span>
-                </div>
-
+              {/* Top Banner Row inside Button */}
+              <div className="flex items-center justify-between gap-2 mb-4 w-full">
+                <span className="text-4xl sm:text-5xl">🚫⛱️</span>
                 {!isRecommendedTake ? (
-                  <span className="bg-[#FFF500] text-[#0040D6] text-[11px] font-black font-mono uppercase px-2.5 py-1 border-2 border-black shadow-[2px_2px_0px_0px_#000000] animate-pulse">
-                    ★ ORACLE CHOICE
+                  <span className="bg-[#FFF500] text-[#0040D6] text-xs font-black font-mono uppercase px-3 py-1 border-2 border-black shadow-[3px_3px_0px_0px_#000000] animate-bounce">
+                    ★ RECOMMENDED BY ORACLE
                   </span>
                 ) : (
-                  <span className="bg-rose-900/90 text-rose-200 text-[10px] font-black font-mono uppercase px-2 py-0.5 border border-rose-500">
+                  <span className="bg-rose-950 text-rose-300 text-xs font-black font-mono uppercase px-2.5 py-1 border border-rose-500">
                     ⚠️ {score}% RAIN RISK
                   </span>
                 )}
               </div>
 
-              {/* Title & Subtitle */}
-              <div>
-                <h4 className="text-3xl sm:text-4xl font-black italic uppercase font-['Outfit',sans-serif] tracking-tight text-white mb-1.5">
+              {/* Huge Option Title */}
+              <div className="my-2">
+                <div className="text-3xl sm:text-5xl font-black italic uppercase font-['Outfit',sans-serif] tracking-tight text-white mb-2">
                   LEAVE IT
-                </h4>
-                <p className="text-xs font-mono font-bold leading-relaxed mb-4 text-slate-200">
+                </div>
+                <p className="text-xs sm:text-sm font-mono font-bold leading-relaxed text-neutral-200">
                   {!isRecommendedTake
-                    ? "Skies are clear. Enjoy travel without carrying extra weight."
-                    : "Warning: High risk of getting wet unless using 100% sheltered walkways!"}
+                    ? "Dry skies. Travel light without lugging extra baggage."
+                    : "Caution: High wet chance! Only pick if travel is 100% sheltered."}
                 </p>
               </div>
 
-              {/* Action Button Strip */}
+              {/* Big Selectable Action Pill inside */}
               <div
-                className={`mt-2 py-2.5 px-3 border-2 font-mono font-black text-xs uppercase flex items-center justify-between transition-all ${
+                className={`mt-5 py-3.5 px-4 border-3 font-mono font-black text-sm sm:text-base uppercase flex items-center justify-between text-center transition-all ${
                   userDecision === "leave_it"
-                    ? "bg-[#FFF500] text-[#0040D6] border-black shadow-[2px_2px_0px_0px_#000000]"
-                    : "bg-black text-[#FFF500] border-slate-700 group-hover:border-[#FFF500] group-hover:bg-[#FFF500] group-hover:text-black"
+                    ? "bg-[#FFF500] text-[#0040D6] border-black shadow-[4px_4px_0px_0px_#000000]"
+                    : "bg-black text-[#FFF500] border-[#FFF500] group-hover:bg-[#FFF500] group-hover:text-black"
                 }`}
               >
-                <span className="flex items-center gap-1.5">
-                  {userDecision === "leave_it" ? "✓ SELECTED" : "SELECT OPTION"}
+                <span className="flex items-center gap-2">
+                  {userDecision === "leave_it" ? "✅ SELECTED (LEAVING IT)" : "👉 CLICK TO LEAVE IT"}
                 </span>
-                <span className="text-[10px] opacity-80">
-                  {100 - score}% DRY CHANCE
+                <span className="text-xs font-black">
+                  {userDecision === "leave_it" ? "ACTIVE" : "CHOOSE"}
                 </span>
               </div>
-            </div>
+            </button>
 
-            {/* OPTION 2: TAKE IT */}
-            <div
+            {/* OPTION 2: TAKE IT BUTTON */}
+            <button
+              type="button"
+              id="btn-decision-take-it"
               onClick={() => {
                 setUserDecision("take_it");
                 sounds.playPop();
               }}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  setUserDecision("take_it");
-                  sounds.playPop();
-                }
-              }}
-              className={`group p-5 border-4 cursor-pointer text-left transition-all duration-150 relative flex flex-col justify-between select-none ${
+              className={`w-full text-left p-6 sm:p-7 border-4 sm:border-[5px] transition-all duration-150 relative flex flex-col justify-between cursor-pointer active:translate-x-1 active:translate-y-1 ${
                 userDecision === "take_it"
-                  ? "bg-[#FFF500] border-black text-[#0040D6] shadow-[6px_6px_0px_0px_#000000] scale-[1.01]"
-                  : "bg-slate-950 border-slate-700 text-slate-300 hover:border-[#FFF500] hover:bg-slate-900 shadow-[4px_4px_0px_0px_#000000] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_#FFF500]"
+                  ? "bg-[#FFF500] border-black text-[#0040D6] shadow-[8px_8px_0px_0px_#000000] ring-4 ring-[#0040D6]"
+                  : "bg-neutral-950 border-neutral-700 text-neutral-300 hover:border-[#FFF500] hover:bg-neutral-900 shadow-[5px_5px_0px_0px_#000000] hover:shadow-[7px_7px_0px_0px_#FFF500]"
               }`}
             >
-              {/* Top Row: Radio circle + Oracle badge */}
-              <div className="flex justify-between items-center mb-3">
-                <div className="flex items-center gap-2">
-                  <div
-                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                      userDecision === "take_it"
-                        ? "border-black bg-black text-[#FFF500]"
-                        : "border-slate-500 bg-black text-transparent group-hover:border-[#FFF500]"
-                    }`}
-                  >
-                    <Check className="w-4 h-4 stroke-[4]" />
-                  </div>
-                  <span className="text-2xl">☂️⚡</span>
-                </div>
-
+              {/* Top Banner Row inside Button */}
+              <div className="flex items-center justify-between gap-2 mb-4 w-full">
+                <span className="text-4xl sm:text-5xl">☂️⚡</span>
                 {isRecommendedTake ? (
-                  <span className="bg-black text-[#FFF500] text-[11px] font-black font-mono uppercase px-2.5 py-1 border-2 border-black shadow-[2px_2px_0px_0px_#000000] animate-pulse">
-                    ★ ORACLE CHOICE
+                  <span className="bg-black text-[#FFF500] text-xs font-black font-mono uppercase px-3 py-1 border-2 border-[#FFF500] shadow-[3px_3px_0px_0px_#FFF500] animate-bounce">
+                    ★ RECOMMENDED BY ORACLE
                   </span>
                 ) : (
-                  <span className="bg-slate-800 text-slate-300 text-[10px] font-black font-mono uppercase px-2 py-0.5">
+                  <span className="bg-neutral-800 text-neutral-300 text-xs font-black font-mono uppercase px-2.5 py-1 border border-neutral-600">
                     SUN SHIELD ONLY
                   </span>
                 )}
               </div>
 
-              {/* Title & Subtitle */}
-              <div>
-                <h4 className="text-3xl sm:text-4xl font-black italic uppercase font-['Outfit',sans-serif] tracking-tight mb-1.5 text-current">
+              {/* Huge Option Title */}
+              <div className="my-2">
+                <div
+                  className={`text-3xl sm:text-5xl font-black italic uppercase font-['Outfit',sans-serif] tracking-tight mb-2 ${
+                    userDecision === "take_it" ? "text-[#0040D6]" : "text-white"
+                  }`}
+                >
                   TAKE IT
-                </h4>
-                <p className="text-xs font-mono font-bold leading-relaxed mb-4 text-current/90">
+                </div>
+                <p
+                  className={`text-xs sm:text-sm font-mono font-bold leading-relaxed ${
+                    userDecision === "take_it" ? "text-[#0040D6]/95" : "text-neutral-200"
+                  }`}
+                >
                   {isRecommendedTake
                     ? "Essential protection! Heavy rain, sudden squalls, or harsh UV ahead."
-                    : "Protects against UV sunburn, but drench chance is low."}
+                    : "Sun protection ready, though rain chance is mild."}
                 </p>
               </div>
 
-              {/* Action Button Strip */}
+              {/* Big Selectable Action Pill inside */}
               <div
-                className={`mt-2 py-2.5 px-3 border-2 font-mono font-black text-xs uppercase flex items-center justify-between transition-all ${
+                className={`mt-5 py-3.5 px-4 border-3 font-mono font-black text-sm sm:text-base uppercase flex items-center justify-between text-center transition-all ${
                   userDecision === "take_it"
-                    ? "bg-black text-[#FFF500] border-black shadow-[2px_2px_0px_0px_#000000]"
-                    : "bg-black text-[#FFF500] border-slate-700 group-hover:border-[#FFF500] group-hover:bg-[#FFF500] group-hover:text-black"
+                    ? "bg-black text-[#FFF500] border-black shadow-[4px_4px_0px_0px_#000000]"
+                    : "bg-black text-[#FFF500] border-[#FFF500] group-hover:bg-[#FFF500] group-hover:text-black"
                 }`}
               >
-                <span className="flex items-center gap-1.5">
-                  {userDecision === "take_it" ? "✓ SELECTED" : "SELECT OPTION"}
+                <span className="flex items-center gap-2">
+                  {userDecision === "take_it" ? "✅ SELECTED (TAKING IT)" : "👉 CLICK TO TAKE IT"}
                 </span>
-                <span className="text-[10px] opacity-80">
-                  SCORE: {score}/100
+                <span className="text-xs font-black">
+                  {userDecision === "take_it" ? "ACTIVE" : "CHOOSE"}
                 </span>
               </div>
-            </div>
+            </button>
           </div>
 
-          {/* Outcome Confirmation Banner */}
-          <div className="mt-5 p-3.5 bg-[#002FA7] border-2 border-[#FFF500] flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-[#FFF500]">
-            <div className="flex items-center gap-2">
-              <span className="bg-[#FFF500] text-[#0040D6] font-black px-2 py-0.5 border border-black uppercase text-[11px]">
-                CONFIRMED:
+          {/* Outcome Confirmation Status Bar */}
+          <div className="mt-6 p-4 sm:p-5 bg-[#002FA7] border-3 border-[#FFF500] shadow-[4px_4px_0px_0px_#000000] flex flex-wrap items-center justify-between gap-4 text-xs sm:text-sm font-mono text-[#FFF500]">
+            <div className="flex items-center gap-3">
+              <span className="bg-[#FFF500] text-[#0040D6] font-black px-2.5 py-1 border-2 border-black uppercase text-xs sm:text-sm shrink-0">
+                LOCKED IN:
               </span>
-              <span className="font-bold text-white uppercase text-xs sm:text-sm">
-                YOU CHOSE TO {userDecision === "take_it" ? "TAKE YOUR UMBRELLA ☂️" : "LEAVE YOUR UMBRELLA 🚫"}
+              <span className="font-black text-white uppercase text-sm sm:text-base tracking-wide">
+                YOU CHOSE: {userDecision === "take_it" ? "BRING UMBRELLA ☂️" : "LEAVE UMBRELLA AT HOME 🚫"}
               </span>
             </div>
 
-            <div className="flex items-center gap-2 text-[11px] font-black uppercase">
-              <span className="bg-black px-2 py-0.5 border border-[#FFF500]">
+            <div className="flex items-center gap-2 text-xs font-black uppercase">
+              <span className="bg-black px-2.5 py-1 border border-[#FFF500]">
                 {weather.location.region}: {weather.forecast}
               </span>
-              <span className="bg-black px-2 py-0.5 border border-[#FFF500]">
+              <span className="bg-black px-2.5 py-1 border border-[#FFF500]">
                 RAIN: {weather.rainfall.amountMm}mm
               </span>
             </div>
