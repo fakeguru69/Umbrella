@@ -283,7 +283,7 @@ export default function App() {
           </span>
         </div>
         <p className="text-xs uppercase tracking-[0.2em] font-bold text-[#FFF500]/80 mt-2">
-          THE BROLLY ORACLE // NEVER GET SOAKED, NEVER GET CRISPY.
+          UMBRELLA ORACLE // NEVER GET SOAKED, NEVER GET CRISPY.
         </p>
       </footer>
     </div>

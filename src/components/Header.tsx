@@ -81,13 +81,13 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-[#0037B8] border-4 border-[#FFF500] shadow-[6px_6px_0px_0px_#FFF500] text-[#FFF500]">
         {/* Brand */}
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-[#FFF500] text-[#0040D6] flex items-center justify-center font-black text-2xl border-2 border-black">
+          <div className="w-12 h-12 bg-[#FFF500] text-[#0040D6] flex items-center justify-center font-black text-2xl border-2 border-black shadow-[2px_2px_0px_0px_#000000]">
             <Umbrella className="w-7 h-7 stroke-[3]" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <span className="font-black text-2xl tracking-tighter uppercase font-['Outfit',sans-serif] text-[#FFF500]">
-                THE BROLLY ORACLE <span className="text-xs bg-[#FFF500] text-[#0040D6] px-2 py-0.5 font-mono font-black ml-1">v1.02</span>
+                UMBRELLA ORACLE <span className="text-xs bg-[#FFF500] text-[#0040D6] px-2 py-0.5 font-mono font-black ml-1 border border-black">v1.02</span>
               </span>
             </div>
             <p className="text-xs uppercase tracking-[0.2em] font-bold text-[#FFF500]/80">
@@ -230,7 +230,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Persona Selector Pill */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-none bg-[#0037B8] p-2 border-2 border-[#FFF500] shadow-[4px_4px_0px_0px_#FFF500]">
           <span className="text-[10px] font-black text-[#FFF500] uppercase tracking-[0.2em] shrink-0 flex items-center gap-1 pl-1">
-            <Sparkles className="w-3.5 h-3.5 text-[#FFF500]" /> PERSONA:
+            <Sparkles className="w-3.5 h-3.5 text-[#FFF500]" /> AI VOICE:
           </span>
           <div className="flex items-center gap-1.5">
             {personas.map((p) => (

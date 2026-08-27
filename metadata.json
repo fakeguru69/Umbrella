@@ -1,6 +1,6 @@
 {
-  "name": "Brolly - Quirky Realtime Umbrella Advisor",
-  "description": "Quirky real-time umbrella and UV advisory app with live weather station telemetry, rain radar, UV burn indices, and witty AI forecasts.",
+  "name": "Umbrella Oracle",
+  "description": "Quirky real-time umbrella and UV advisory with live weather station telemetry, rain radar, UV burn indices, and witty AI forecasts.",
   "requestFramePermissions": ["geolocation"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
