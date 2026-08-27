@@ -7,12 +7,9 @@ import {
   VolumeX,
   Bell,
   BellRing,
-  Sparkles,
   Search,
   Crosshair,
-  Radio,
 } from "lucide-react";
-import { PersonaType } from "../types";
 import { sounds } from "../lib/sound";
 
 interface HeaderProps {
@@ -21,8 +18,6 @@ interface HeaderProps {
   onDetectGps: () => void;
   onRefresh: () => void;
   isLoading: boolean;
-  selectedPersona: PersonaType;
-  onSelectPersona: (p: PersonaType) => void;
   notificationsEnabled: boolean;
   onToggleNotifications: () => void;
   soundEnabled: boolean;
@@ -36,8 +31,6 @@ export const Header: React.FC<HeaderProps> = ({
   onDetectGps,
   onRefresh,
   isLoading,
-  selectedPersona,
-  onSelectPersona,
   notificationsEnabled,
   onToggleNotifications,
   soundEnabled,
@@ -46,15 +39,6 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-
-  const personas: Array<{ id: PersonaType; label: string; icon: string; tag: string }> = [
-    { id: "Sarcastic Singlish Auntie", label: "Singlish Auntie", icon: "👵🏻", tag: "Sharp & Local" },
-    { id: "British Brolly Butler", label: "Brolly Butler", icon: "🎩", tag: "Ultra Posh" },
-    { id: "Doomsday Meteorologist", label: "Doomsday Prophet", icon: "🌋", tag: "Hyper Dramatic" },
-    { id: "Hyper-cautious Asian Mom", label: "Asian Mom", icon: "🥡", tag: "SPF 100+ Worry" },
-    { id: "Gen-Z Weather Influencer", label: "Gen-Z Creator", icon: "🧢", tag: "No Cap Fr" },
-    { id: "Hardboiled Noir Detective", label: "Noir Detective", icon: "🕵️‍♂️", tag: "Gritty 1940s" },
-  ];
 
   const popularSgTowns = [
     "Jurong West",
@@ -154,10 +138,10 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Location & Persona Selector Sub-row */}
+      {/* Location Selector Sub-row */}
       <div className="mt-3 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         {/* Location Selector */}
-        <div className="relative flex-1 min-w-[280px]">
+        <div className="relative flex-1">
           <button
             id="location-picker-btn"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -171,7 +155,7 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </div>
             <span className="text-[11px] sm:text-xs bg-[#FFF500] text-[#0040D6] px-2.5 py-1 font-black shrink-0 border border-black ml-2">
-              CHANGE ▾
+              CHANGE LOCATION ▾
             </span>
           </button>
 
@@ -227,33 +211,6 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
           )}
-        </div>
-
-        {/* Persona Selector Pill */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-none bg-[#0037B8] p-2 border-2 border-[#FFF500] shadow-[4px_4px_0px_0px_#FFF500]">
-          <span className="text-[10px] font-black text-[#FFF500] uppercase tracking-[0.2em] shrink-0 flex items-center gap-1 pl-1">
-            <Sparkles className="w-3.5 h-3.5 text-[#FFF500]" /> AI VOICE:
-          </span>
-          <div className="flex items-center gap-1.5">
-            {personas.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => {
-                  onSelectPersona(p.id);
-                  sounds.playPop();
-                }}
-                className={`px-2.5 py-1 text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all flex items-center gap-1.5 border-2 ${
-                  selectedPersona === p.id
-                    ? "bg-[#FFF500] text-[#0040D6] border-black shadow-[2px_2px_0px_0px_#000000]"
-                    : "bg-black text-[#FFF500] border-[#FFF500] hover:bg-[#FFF500]/20"
-                }`}
-                title={p.tag}
-              >
-                <span>{p.icon}</span>
-                <span>{p.label}</span>
-              </button>
-            ))}
-          </div>
         </div>
       </div>
     </header>

@@ -7,7 +7,7 @@ import { NotificationBanner } from "./components/NotificationBanner";
 import { WindPhysicsSimulator } from "./components/WindPhysicsSimulator";
 import { StationRadarModal } from "./components/StationRadarModal";
 import { ExcuseModal } from "./components/ExcuseModal";
-import { WeatherData, AIAdvice, PersonaType, RainStation } from "./types";
+import { WeatherData, AIAdvice, RainStation } from "./types";
 import { initialWeatherData, initialAdviceData } from "./data";
 import { sounds } from "./lib/sound";
 import { Umbrella, Sparkles, ExternalLink, ShieldCheck, Heart } from "lucide-react";
@@ -16,7 +16,6 @@ export default function App() {
   const [currentArea, setCurrentArea] = useState<string>("Jurong West");
   const [weather, setWeather] = useState<WeatherData>(initialWeatherData);
   const [advice, setAdvice] = useState<AIAdvice>(initialAdviceData);
-  const [selectedPersona, setSelectedPersona] = useState<PersonaType>("Sarcastic Singlish Auntie");
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isLoadingAdvice, setIsLoadingAdvice] = useState<boolean>(false);
@@ -57,18 +56,18 @@ export default function App() {
         }
 
         // Fetch AI roast with the fresh data
-        fetchAdvice(data, selectedPersona);
+        fetchAdvice(data);
       } catch (err) {
         console.error("Telemetry error:", err);
       } finally {
         setIsLoading(false);
       }
     },
-    [selectedPersona, notificationsEnabled]
+    [notificationsEnabled]
   );
 
   // Fetch AI roast from server
-  const fetchAdvice = async (wData: WeatherData, persona: PersonaType) => {
+  const fetchAdvice = async (wData: WeatherData) => {
     setIsLoadingAdvice(true);
     try {
       const res = await fetch("/api/gemini/roast-and-advice", {
@@ -81,7 +80,6 @@ export default function App() {
           uvIndex: wData.uvIndex.value,
           windSpeedKmH: wData.wind.speedKmH,
           umbrellaScore: wData.umbrellaScore,
-          persona,
         }),
       });
 
@@ -125,14 +123,6 @@ export default function App() {
         fetchWeatherTelemetry("Jurong West");
       }
     );
-  };
-
-  // Handle Persona Change
-  const handleSelectPersona = (p: PersonaType) => {
-    setSelectedPersona(p);
-    if (weather) {
-      fetchAdvice(weather, p);
-    }
   };
 
   // Toggle Sound
@@ -184,8 +174,6 @@ export default function App() {
           onDetectGps={handleDetectGps}
           onRefresh={() => fetchWeatherTelemetry(currentArea)}
           isLoading={isLoading}
-          selectedPersona={selectedPersona}
-          onSelectPersona={handleSelectPersona}
           notificationsEnabled={notificationsEnabled}
           onToggleNotifications={handleToggleNotifications}
           soundEnabled={soundEnabled}
@@ -213,9 +201,8 @@ export default function App() {
             isLoadingAdvice={isLoadingAdvice}
             onRollAnotherHotTake={() => {
               setIsExcuseModalOpen(true);
-              fetchAdvice(weather, selectedPersona);
+              fetchAdvice(weather);
             }}
-            selectedPersona={selectedPersona}
           />
         )}
 
@@ -259,9 +246,8 @@ export default function App() {
             isOpen={isExcuseModalOpen}
             onClose={() => setIsExcuseModalOpen(false)}
             advice={advice}
-            selectedPersona={selectedPersona}
             currentArea={weather.location.region}
-            onRollNew={() => fetchAdvice(weather, selectedPersona)}
+            onRollNew={() => fetchAdvice(weather)}
             isLoading={isLoadingAdvice}
           />
         </>

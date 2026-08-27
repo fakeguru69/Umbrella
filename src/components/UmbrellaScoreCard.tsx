@@ -19,7 +19,7 @@ import {
   Info,
 } from "lucide-react";
 import confetti from "canvas-confetti";
-import { WeatherData, AIAdvice, PersonaType } from "../types";
+import { WeatherData, AIAdvice } from "../types";
 import { sounds } from "../lib/sound";
 
 interface UmbrellaScoreCardProps {
@@ -27,7 +27,6 @@ interface UmbrellaScoreCardProps {
   advice: AIAdvice | null;
   isLoadingAdvice: boolean;
   onRollAnotherHotTake: () => void;
-  selectedPersona: PersonaType;
 }
 
 export const UmbrellaScoreCard: React.FC<UmbrellaScoreCardProps> = ({
@@ -35,7 +34,6 @@ export const UmbrellaScoreCard: React.FC<UmbrellaScoreCardProps> = ({
   advice,
   isLoadingAdvice,
   onRollAnotherHotTake,
-  selectedPersona,
 }) => {
   const [copied, setCopied] = useState(false);
   const score = weather.umbrellaScore;

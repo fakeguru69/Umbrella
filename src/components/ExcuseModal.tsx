@@ -9,14 +9,13 @@ import {
   Laugh,
   Send,
 } from "lucide-react";
-import { AIAdvice, PersonaType } from "../types";
+import { AIAdvice } from "../types";
 import { sounds } from "../lib/sound";
 
 interface ExcuseModalProps {
   isOpen: boolean;
   onClose: () => void;
   advice: AIAdvice | null;
-  selectedPersona: PersonaType;
   currentArea: string;
   onRollNew: () => void;
   isLoading: boolean;
@@ -26,7 +25,6 @@ export const ExcuseModal: React.FC<ExcuseModalProps> = ({
   isOpen,
   onClose,
   advice,
-  selectedPersona,
   currentArea,
   onRollNew,
   isLoading,
@@ -129,7 +127,7 @@ export const ExcuseModal: React.FC<ExcuseModalProps> = ({
         {/* Footer Roll New */}
         <div className="mt-4 pt-3 border-t-4 border-[#FFF500] flex flex-wrap items-center justify-between gap-3">
           <span className="text-xs font-mono font-black uppercase tracking-wider text-[#FFF500]">
-            PERSONA: {selectedPersona.toUpperCase()}
+            LOCATION: {currentArea.toUpperCase()}
           </span>
           <button
             onClick={() => {
