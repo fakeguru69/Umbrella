@@ -11,6 +11,7 @@ import { ExcuseModal } from "./components/ExcuseModal";
 import { WeatherData, AIAdvice, RainStation } from "./types";
 import { initialWeatherData, initialAdviceData } from "./data";
 import { sounds } from "./lib/sound";
+import { computeSingaporeWeather, generateQuirkyRoast } from "./services/weatherService";
 import { Umbrella, Sparkles, ExternalLink, ShieldCheck, Heart } from "lucide-react";
 
 export default function App() {
@@ -29,7 +30,7 @@ export default function App() {
   const [isPhysicsModalOpen, setIsPhysicsModalOpen] = useState<boolean>(false);
   const [isExcuseModalOpen, setIsExcuseModalOpen] = useState<boolean>(false);
 
-  // Fetch weather telemetry from server
+  // Fetch weather telemetry from server or client-side direct fallback
   const fetchWeatherTelemetry = useCallback(
     async (area: string, lat?: number, lon?: number) => {
       setIsLoading(true);
@@ -39,9 +40,27 @@ export default function App() {
           endpoint += `&lat=${lat}&lon=${lon}`;
         }
 
-        const res = await fetch(endpoint);
-        if (!res.ok) throw new Error("Weather fetch failed");
-        const data: WeatherData = await res.json();
+        let data: WeatherData | null = null;
+        try {
+          const res = await fetch(endpoint);
+          if (res.ok) {
+            const contentType = res.headers.get("content-type") || "";
+            if (contentType.includes("application/json")) {
+              const parsed = await res.json();
+              if (parsed && parsed.location && parsed.rainfall) {
+                data = parsed;
+              }
+            }
+          }
+        } catch (serverErr) {
+          console.warn("Backend endpoint unreachable, using client live computation:", serverErr);
+        }
+
+        // If backend wasn't available (e.g. static Vercel build / serverless coldstart), compute directly!
+        if (!data) {
+          data = await computeSingaporeWeather(area, lat, lon);
+        }
+
         setWeather(data);
         if (data.location?.region) {
           setCurrentArea(data.location.region);
@@ -70,7 +89,7 @@ export default function App() {
     [notificationsEnabled]
   );
 
-  // Fetch AI roast from server
+  // Fetch AI roast from server with instant smart fallback
   const fetchAdvice = async (wData: WeatherData) => {
     setIsLoadingAdvice(true);
     try {
@@ -88,11 +107,37 @@ export default function App() {
       });
 
       if (res.ok) {
-        const adv: AIAdvice = await res.json();
-        setAdvice(adv);
+        const contentType = res.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          const adv: AIAdvice = await res.json();
+          if (adv && adv.verdict) {
+            setAdvice(adv);
+            return;
+          }
+        }
       }
+
+      // Fallback if AI endpoint not available
+      const fallbackRoast = generateQuirkyRoast(
+        wData.forecast,
+        wData.rainfall.amountMm,
+        wData.uvIndex.value,
+        wData.wind.speedKmH,
+        wData.umbrellaScore,
+        wData.location.region
+      );
+      setAdvice(fallbackRoast);
     } catch (err) {
       console.error("AI roast fetch error:", err);
+      const fallbackRoast = generateQuirkyRoast(
+        wData.forecast,
+        wData.rainfall.amountMm,
+        wData.uvIndex.value,
+        wData.wind.speedKmH,
+        wData.umbrellaScore,
+        wData.location.region
+      );
+      setAdvice(fallbackRoast);
     } finally {
       setIsLoadingAdvice(false);
     }

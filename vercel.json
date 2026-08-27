@@ -1,0 +1,25 @@
+{
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/api/weather/singapore",
+      "destination": "/api/weather/singapore"
+    },
+    {
+      "source": "/api/gemini/roast-and-advice",
+      "destination": "/api/gemini"
+    },
+    {
+      "source": "/api/roast-and-advice",
+      "destination": "/api/gemini"
+    },
+    {
+      "source": "/api/datagovsg/:path*",
+      "destination": "/api/datagovsg"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

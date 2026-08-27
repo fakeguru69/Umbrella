@@ -82,6 +82,69 @@ Rules:
   }
 });
 
+export default async function handler(req: any, res: any) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body || {};
+  const {
+    location = "Singapore",
+    forecast = "Thundery Showers",
+    rainfallMm = 0.0,
+    uvIndex = 9.0,
+    windSpeedKmH = 15,
+    umbrellaScore = 75,
+  } = body;
+
+  try {
+    const ai = getGeminiClient();
+    if (!ai) {
+      return res.status(200).json(generateFallbackQuirkyVerdict(forecast, rainfallMm, uvIndex, windSpeedKmH, umbrellaScore, location));
+    }
+
+    const systemInstruction = `You are the AI brain of Umbrella Oracle, the world's most delightfully quirky, brutally honest, and sharp-witted umbrella recommendation engine for Singapore commuters.
+Your mission is to evaluate real-time weather telemetries (Rainfall, UV Index, Wind Speed, 2-Hour Forecast, Umbrella Index) and deliver hilarious, unforgettable verdicts.
+Always return valid JSON adhering strictly to the JSON schema.`;
+
+    const prompt = `Analyze this live weather snapshot:
+Location: ${location}
+2-Hour Forecast: ${forecast}
+Current Rainfall: ${rainfallMm} mm
+UV Index: ${uvIndex}
+Wind Speed: ${windSpeedKmH} km/h
+Calculated Umbrella Score (1-100): ${umbrellaScore}
+
+Rules:
+1. "roast": 1-2 sharp, quirky, hilarious sentences.
+2. "verdict": Short punchy all-caps verdict.
+3. "sunscreenAdvice": Quirky SPF warning.
+4. "shelteredRouteTip": A practical and humorous sheltered walking route.
+5. "excuseToStayHome": A funny excuse to stay home.
+6. "umbrellaArchetype": The recommended umbrella type.
+7. "brollySurvivalProbability": Number between 0 and 100.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.7-flash",
+      contents: prompt,
+      config: {
+        systemInstruction,
+        responseMimeType: "application/json",
+      },
+    });
+
+    const text = response.text || "{}";
+    const parsed = JSON.parse(text);
+    return res.status(200).json(parsed);
+  } catch (err: any) {
+    return res.status(200).json(generateFallbackQuirkyVerdict(forecast, rainfallMm, uvIndex, windSpeedKmH, umbrellaScore, location));
+  }
+}
+
 function generateFallbackQuirkyVerdict(
   forecast: string,
   rainfallMm: number,
@@ -96,11 +159,11 @@ function generateFallbackQuirkyVerdict(
 
   if (isWindy && isWet) {
     return {
-      roast: `Aiyoh! Wind ${windSpeed}km/h some more got rain! Bring umbrella sure fly away to Johor Bahru!`,
+      roast: `Aiyoh! Wind ${windSpeed}km/h some more got rain over ${location}! Bring umbrella sure fly away to Johor Bahru!`,
       verdict: "STAY INDOORS LAH",
       sunscreenAdvice: "Sun hiding behind storm clouds, but humidity will melt your face anyway.",
-      shelteredRouteTip: "Run through HDB void decks and linkways like you're chasing the last bus 179.",
-      excuseToStayHome: "Boss, MRT flooded and wind too strong, my umbrella broken into chopsticks.",
+      shelteredRouteTip: "Run through HDB void decks and linkways like you're chasing the last bus.",
+      excuseToStayHome: "Boss, MRT linkway flooded and wind too strong, my umbrella broken into chopsticks.",
       umbrellaArchetype: "Combat Windproof Heavy-Duty Golf Sword",
       brollySurvivalProbability: 25,
     };
@@ -118,7 +181,7 @@ function generateFallbackQuirkyVerdict(
   }
   if (isSunny) {
     return {
-      roast: `UV ${uvIndex}! You walk outside 5 minutes sure crisp like roasted pork belly (siew yuk) out there.`,
+      roast: `UV ${uvIndex} over ${location}! You walk outside 5 minutes sure crisp like roasted pork belly (siew yuk).`,
       verdict: "BRING UV BROLLY!",
       sunscreenAdvice: "Slap on SPF 50+ PA++++ unless you want to cosplay as charcoal.",
       shelteredRouteTip: "Walk on the shaded side of the street and duck into aircon malls immediately.",
@@ -128,12 +191,13 @@ function generateFallbackQuirkyVerdict(
     };
   }
   return {
-    roast: `Weather quite nice leh, but Singapore sky can flip prata in 10 minutes. Better standby.`,
+    roast: `Weather quite nice over ${location}, but Singapore sky can flip prata in 10 minutes. Better standby.`,
     verdict: "LEAVE IT (OR MINI STANDBY)",
     sunscreenAdvice: "Slap on daily SPF 30, skin cancer does not take days off.",
-    shelteredRouteTip: "Five-foot-ways are your best friend if sudden drizzle strikes.",
+    shelteredRouteTip: "Five-foot-ways and MRT undergrounds are your best friend if sudden drizzle strikes.",
     excuseToStayHome: "Feeling sudden atmospheric lethargy, need teh c peng at home.",
     umbrellaArchetype: "Ultralight Pocket Featherweight",
     brollySurvivalProbability: 95,
   };
 }
+
