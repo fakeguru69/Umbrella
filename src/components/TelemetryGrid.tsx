@@ -122,10 +122,10 @@ export const TelemetryGrid: React.FC<TelemetryGridProps> = ({
 
         {/* Station details */}
         <div className="mt-6 pt-4 border-t-2 border-[#FFF500]/30 text-xs font-mono space-y-1">
-          <div className="text-[10px] uppercase tracking-wider text-[#FFF500]/70 truncate">
+          <div className="text-[10px] uppercase tracking-wider text-[#FFF500]/70 break-words">
             STATION: {weather.rainfall.stationName.toUpperCase()}
           </div>
-          <div className="text-[11px] uppercase font-black text-[#FFF500]">
+          <div className="text-[11px] uppercase font-black text-[#FFF500] break-words">
             FORECAST: {weather.forecast.toUpperCase()}
           </div>
         </div>
@@ -143,7 +143,7 @@ export const TelemetryGrid: React.FC<TelemetryGridProps> = ({
             </span>
             <button
               onClick={onOpenPhysicsModal}
-              className="text-[10px] uppercase font-black bg-black text-[#FFF500] px-2 py-0.5 border border-black hover:bg-[#0040D6] transition-colors"
+              className="text-[10px] uppercase font-black bg-black text-[#FFF500] px-2 py-0.5 border border-black hover:bg-[#0040D6] transition-colors cursor-pointer"
             >
               STRESS LAB 💥
             </button>
@@ -188,9 +188,9 @@ export const TelemetryGrid: React.FC<TelemetryGridProps> = ({
             </span>
           </div>
 
-          <div className="my-2">
-            <span className="text-5xl font-black italic leading-none font-['Outfit',sans-serif] text-white uppercase truncate block">
-              {weather.forecast.length > 12 ? weather.forecast.slice(0, 12) + "..." : weather.forecast}
+          <div className="my-2 min-h-[4rem] flex items-center">
+            <span className="text-2xl sm:text-3xl md:text-4xl font-black italic leading-tight font-['Outfit',sans-serif] text-white uppercase break-words block">
+              {weather.forecast}
             </span>
           </div>
         </div>

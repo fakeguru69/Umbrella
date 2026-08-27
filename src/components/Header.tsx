@@ -157,19 +157,21 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Location & Persona Selector Sub-row */}
       <div className="mt-3 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         {/* Location Selector */}
-        <div className="relative flex-1">
+        <div className="relative flex-1 min-w-[280px]">
           <button
             id="location-picker-btn"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="w-full flex items-center justify-between gap-2 px-4 py-2.5 bg-[#0037B8] border-2 border-[#FFF500] text-[#FFF500] hover:bg-[#002FA7] text-xs font-black uppercase tracking-wider shadow-[4px_4px_0px_0px_#FFF500] transition-colors"
+            className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5 bg-[#0037B8] border-2 border-[#FFF500] text-[#FFF500] hover:bg-[#002FA7] text-xs font-black uppercase tracking-wider shadow-[4px_4px_0px_0px_#FFF500] transition-colors cursor-pointer"
           >
-            <div className="flex items-center gap-2 truncate">
+            <div className="flex items-center gap-2 text-left min-w-0">
               <MapPin className="w-4 h-4 text-[#FFF500] shrink-0" />
-              <span className="text-[#FFF500]/70">AREA:</span>
-              <span className="font-black text-white truncate text-sm">{currentLocationName}</span>
+              <span className="text-[#FFF500]/70 shrink-0 text-[11px] sm:text-xs">AREA:</span>
+              <span className="font-black text-white text-xs sm:text-sm uppercase tracking-wide break-words">
+                {currentLocationName}
+              </span>
             </div>
-            <span className="text-xs bg-[#FFF500] text-[#0040D6] px-2.5 py-1 font-black shrink-0">
-              CHANGE LOCATION ▾
+            <span className="text-[11px] sm:text-xs bg-[#FFF500] text-[#0040D6] px-2.5 py-1 font-black shrink-0 border border-black ml-2">
+              CHANGE ▾
             </span>
           </button>
 
