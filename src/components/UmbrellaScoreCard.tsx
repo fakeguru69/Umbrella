@@ -109,15 +109,20 @@ export const UmbrellaScoreCard: React.FC<UmbrellaScoreCardProps> = ({
 
       {/* Header bar */}
       <div className="relative z-10 p-5 sm:p-8 border-b-4 border-[#FFF500] bg-[#002FA7]">
-        <div className="flex flex-wrap items-center justify-between gap-3 text-xs uppercase tracking-[0.25em] font-black text-[#FFF500] mb-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 text-xs uppercase tracking-[0.2em] font-black text-[#FFF500] mb-3">
           <div className="flex items-center gap-2">
             <span className="inline-block w-3 h-3 bg-[#FFF500] border border-black animate-ping" />
             <span className="font-black">
-              LIVE TELEMETRY: {weather.location.country} // {weather.location.region}
+              LIVE TELEMETRY: {weather.location.region.toUpperCase()} {weather.location.stationDistanceKm ? `· ${weather.rainfall.stationName} (${weather.location.stationDistanceKm}KM AWAY)` : ""}
             </span>
           </div>
-          <div className="text-right">
-            <span className="text-xs uppercase tracking-[0.25em] font-black bg-black text-[#FFF500] px-2.5 py-1 border border-[#FFF500]">
+          <div className="flex items-center gap-2 text-right">
+            {weather.temperature !== undefined && (
+              <span className="text-xs uppercase tracking-wider font-black bg-black text-[#FFF500] px-2.5 py-1 border border-[#FFF500]">
+                TEMP: {weather.temperature}°C
+              </span>
+            )}
+            <span className="text-xs uppercase tracking-wider font-black bg-black text-[#FFF500] px-2.5 py-1 border border-[#FFF500]">
               HUMIDITY: {weather.humidity}%
             </span>
           </div>

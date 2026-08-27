@@ -114,6 +114,7 @@ export interface WeatherData {
     region: string;
     latitude: number;
     longitude: number;
+    stationDistanceKm?: number;
   };
   forecast: string;
   allForecasts?: Array<{ area: string; forecast: string }>;

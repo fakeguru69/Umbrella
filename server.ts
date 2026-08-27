@@ -75,117 +75,144 @@ app.get("/api/weather/singapore", async (req, res) => {
     const userLat = parseFloat(req.query.lat as string);
     const userLon = parseFloat(req.query.lon as string);
 
-    // Parallel fetch from all relevant Data.gov.sg environment APIs
+    // Parallel fetch from all relevant Data.gov.sg v2 environment APIs
     const [
       forecastRaw,
       rainfallRaw,
       uvRaw,
       windSpeedRaw,
-      windDirRaw,
       tempRaw,
       humidityRaw,
       forecast24hRaw,
       forecast4dRaw,
       psiRaw,
+      pm25Raw,
     ] = await Promise.all([
       fetchWithCache(
         "sg_forecast_2h",
-        "https://api.data.gov.sg/v1/environment/2-hour-weather-forecast",
-        { items: [{ forecasts: defaultForecasts }] }
+        "https://api-open.data.gov.sg/v2/real-time/api/two-hr-forecast",
+        { area_metadata: [], items: [{ forecasts: defaultForecasts }] }
       ),
       fetchWithCache(
         "sg_rainfall",
-        "https://api.data.gov.sg/v1/environment/rainfall",
+        "https://api-open.data.gov.sg/v2/real-time/api/rainfall",
         {
-          metadata: { stations: defaultStations },
-          items: [{ readings: defaultStations.map((s) => ({ station_id: s.id, value: s.rainfall })) }],
+          stations: defaultStations,
+          readings: [{ data: defaultStations.map((s) => ({ stationId: s.id, value: s.rainfall })) }],
         }
       ),
       fetchWithCache(
         "sg_uv",
-        "https://api.data.gov.sg/v1/environment/uv-index",
-        { items: [{ index: [{ value: 8.4, timestamp: new Date().toISOString() }] }] }
+        "https://api-open.data.gov.sg/v2/real-time/api/uv",
+        { records: [{ index: [{ value: 7.5, hour: new Date().toISOString() }] }] }
       ),
       fetchWithCache(
         "sg_wind_speed",
-        "https://api.data.gov.sg/v1/environment/wind-speed",
-        { items: [{ readings: [{ station_id: "S109", value: 14.2 }] }] }
-      ),
-      fetchWithCache(
-        "sg_wind_dir",
-        "https://api.data.gov.sg/v1/environment/wind-direction",
-        { items: [{ readings: [{ station_id: "S109", value: 180 }] }] }
+        "https://api-open.data.gov.sg/v2/real-time/api/wind-speed",
+        { stations: [], readings: [{ data: [{ stationId: "S109", value: 14.2 }] }] }
       ),
       fetchWithCache(
         "sg_temp",
-        "https://api.data.gov.sg/v1/environment/air-temperature",
-        { metadata: { stations: [] }, items: [{ readings: [{ station_id: "S109", value: 29.8 }] }] }
+        "https://api-open.data.gov.sg/v2/real-time/api/air-temperature",
+        { stations: [], readings: [{ data: [{ stationId: "S109", value: 29.8 }] }] }
       ),
       fetchWithCache(
         "sg_humidity",
-        "https://api.data.gov.sg/v1/environment/relative-humidity",
-        { metadata: { stations: [] }, items: [{ readings: [{ station_id: "S109", value: 78 }] }] }
+        "https://api-open.data.gov.sg/v2/real-time/api/relative-humidity",
+        { stations: [], readings: [{ data: [{ stationId: "S109", value: 78 }] }] }
       ),
       fetchWithCache(
         "sg_forecast_24h",
-        "https://api.data.gov.sg/v1/environment/24-hour-weather-forecast",
-        { items: [] }
+        "https://api-open.data.gov.sg/v2/real-time/api/twenty-four-hr-forecast",
+        { records: [] }
       ),
       fetchWithCache(
         "sg_forecast_4d",
-        "https://api.data.gov.sg/v1/environment/4-day-weather-forecast",
-        { items: [] }
+        "https://api-open.data.gov.sg/v2/real-time/api/four-day-outlook",
+        { records: [] }
       ),
       fetchWithCache(
         "sg_psi",
-        "https://api.data.gov.sg/v1/environment/psi",
-        { items: [] }
+        "https://api-open.data.gov.sg/v2/real-time/api/psi",
+        { regionMetadata: [], items: [] }
+      ),
+      fetchWithCache(
+        "sg_pm25",
+        "https://api-open.data.gov.sg/v2/real-time/api/pm25",
+        { regionMetadata: [], items: [] }
       ),
     ]);
 
     // Parse 2-hour forecasts
     const forecastsList: Array<{ area: string; forecast: string }> =
-      forecastRaw?.items?.[0]?.forecasts || defaultForecasts;
+      (forecastRaw as any)?.items?.[0]?.forecasts || defaultForecasts;
+
+    const areaMetaList: Array<{ name: string; label_location?: { latitude: number; longitude: number }; labelLocation?: { latitude: number; longitude: number } }> =
+      (forecastRaw as any)?.area_metadata || [];
 
     let selectedForecast = forecastsList.find(
       (f) => f.area.toLowerCase() === areaQuery.toLowerCase()
+    ) || forecastsList.find(
+      (f) => f.area.toLowerCase().includes(areaQuery.toLowerCase()) || areaQuery.toLowerCase().includes(f.area.toLowerCase())
     ) || forecastsList[0];
 
+    const areaMeta = areaMetaList.find(
+      (a) => a.name.toLowerCase() === selectedForecast.area.toLowerCase()
+    ) || areaMetaList.find(
+      (a) => a.name.toLowerCase().includes(selectedForecast.area.toLowerCase()) || selectedForecast.area.toLowerCase().includes(a.name.toLowerCase())
+    );
+
+    const areaLat = areaMeta?.label_location?.latitude || areaMeta?.labelLocation?.latitude || 1.34039;
+    const areaLon = areaMeta?.label_location?.longitude || areaMeta?.labelLocation?.longitude || 103.705;
+
+    const targetLat = !isNaN(userLat) ? userLat : areaLat;
+    const targetLon = !isNaN(userLon) ? userLon : areaLon;
+
+    // Helper to extract readings map across v2 ({stationId, value} in readings[0].data) or v1 ({station_id, value} in readings[0].readings)
+    const extractReadingsMap = (raw: any): Map<string, number> => {
+      const map = new Map<string, number>();
+      const readingObj = raw?.readings?.[0] || raw?.items?.[0]?.readings;
+      const dataArr = readingObj?.data || readingObj || [];
+      if (Array.isArray(dataArr)) {
+        for (const item of dataArr) {
+          const id = item.stationId || item.station_id;
+          const val = typeof item.value === "number" ? item.value : parseFloat(item.value);
+          if (id && !isNaN(val)) {
+            map.set(id, val);
+          }
+        }
+      }
+      return map;
+    };
+
     // Stations & readings matching for rainfall
-    const stationsMeta = rainfallRaw?.metadata?.stations || defaultStations;
-    const readings = rainfallRaw?.items?.[0]?.readings || [];
-    const readingMap = new Map(readings.map((r: any) => [r.station_id, r.value]));
+    const stationsMeta = (rainfallRaw as any)?.stations || (rainfallRaw as any)?.metadata?.stations || defaultStations;
+    const readingMap = extractReadingsMap(rainfallRaw);
 
     const mappedStations = stationsMeta.map((st: any) => ({
       id: st.id,
       name: st.name || st.id,
-      lat: st.location ? st.location.latitude : st.lat,
-      lon: st.location ? st.location.longitude : st.lon,
-      rainfall: typeof readingMap.get(st.id) === "number" ? readingMap.get(st.id) : 0,
+      lat: st.location ? (st.location.latitude ?? st.location.lat) : st.lat,
+      lon: st.location ? (st.location.longitude ?? st.location.lon) : st.lon,
+      rainfall: typeof readingMap.get(st.id) === "number" ? readingMap.get(st.id)! : 0,
     }));
 
-    // Find nearest station if coordinates provided
+    // Find nearest rainfall station using exact target coordinates
     let nearestStation = mappedStations[0];
-    if (!isNaN(userLat) && !isNaN(userLon)) {
-      let minDist = Infinity;
-      for (const st of mappedStations) {
-        const d = getDistanceFromLatLonInKm(userLat, userLon, st.lat, st.lon);
-        if (d < minDist) {
-          minDist = d;
+    let minRainDist = Infinity;
+    for (const st of mappedStations) {
+      if (typeof st.lat === "number" && typeof st.lon === "number") {
+        const d = getDistanceFromLatLonInKm(targetLat, targetLon, st.lat, st.lon);
+        if (d < minRainDist) {
+          minRainDist = d;
           nearestStation = st;
         }
       }
-    } else {
-      const match = mappedStations.find((s: any) =>
-        s.name.toLowerCase().includes(selectedForecast.area.toLowerCase())
-      );
-      if (match) nearestStation = match;
     }
 
     // Temperature & Humidity parsing across stations
-    const tempStationsMeta = tempRaw?.metadata?.stations || [];
-    const tempReadings = tempRaw?.items?.[0]?.readings || [];
-    const tempReadingMap = new Map(tempReadings.map((r: any) => [r.station_id, r.value]));
+    const tempStationsMeta = (tempRaw as any)?.stations || (tempRaw as any)?.metadata?.stations || [];
+    const tempReadingMap = extractReadingsMap(tempRaw);
     const mappedTempStations = tempStationsMeta.map((st: any) => ({
       id: st.id,
       name: st.name || st.id,
@@ -195,11 +222,21 @@ app.get("/api/weather/singapore", async (req, res) => {
       unit: "°C",
     }));
 
-    const currentTemp = mappedTempStations.length > 0 ? (tempReadingMap.get(nearestStation?.id) ?? mappedTempStations[0].value) : 30.2;
+    let nearestTempStation = mappedTempStations[0];
+    let minTempDist = Infinity;
+    for (const st of mappedTempStations) {
+      if (typeof st.lat === "number" && typeof st.lon === "number") {
+        const d = getDistanceFromLatLonInKm(targetLat, targetLon, st.lat, st.lon);
+        if (d < minTempDist) {
+          minTempDist = d;
+          nearestTempStation = st;
+        }
+      }
+    }
+    const currentTemp = nearestTempStation ? nearestTempStation.value : 30.2;
 
-    const humStationsMeta = humidityRaw?.metadata?.stations || [];
-    const humReadings = humidityRaw?.items?.[0]?.readings || [];
-    const humReadingMap = new Map(humReadings.map((r: any) => [r.station_id, r.value]));
+    const humStationsMeta = (humidityRaw as any)?.stations || (humidityRaw as any)?.metadata?.stations || [];
+    const humReadingMap = extractReadingsMap(humidityRaw);
     const mappedHumStations = humStationsMeta.map((st: any) => ({
       id: st.id,
       name: st.name || st.id,
@@ -209,52 +246,89 @@ app.get("/api/weather/singapore", async (req, res) => {
       unit: "%",
     }));
 
-    const currentHum = mappedHumStations.length > 0 ? (humReadingMap.get(nearestStation?.id) ?? mappedHumStations[0].value) : 78;
+    let nearestHumStation = mappedHumStations[0];
+    let minHumDist = Infinity;
+    for (const st of mappedHumStations) {
+      if (typeof st.lat === "number" && typeof st.lon === "number") {
+        const d = getDistanceFromLatLonInKm(targetLat, targetLon, st.lat, st.lon);
+        if (d < minHumDist) {
+          minHumDist = d;
+          nearestHumStation = st;
+        }
+      }
+    }
+    const currentHum = nearestHumStation ? nearestHumStation.value : 78;
 
     // UV Index calculation
-    const uvRecords = uvRaw?.items?.[0]?.index || [];
-    const latestUv = uvRecords.length > 0 ? uvRecords[uvRecords.length - 1].value : 8.2;
+    const uvIndexList = (uvRaw as any)?.records?.[0]?.index || (uvRaw as any)?.items?.[0]?.index || [];
+    const latestUv = uvIndexList.length > 0 ? (uvIndexList[uvIndexList.length - 1].value ?? 6.0) : 6.0;
 
-    // Wind speed & direction reading
-    const windReadings = windSpeedRaw?.items?.[0]?.readings || [];
-    const windSpeedKmH = windReadings.length > 0 ? windReadings[0].value * 1.852 : 15.0; // knots to km/h or avg
+    // Wind speed reading
+    const windReadingMap = extractReadingsMap(windSpeedRaw);
+    const nearestWindVal = nearestStation ? windReadingMap.get(nearestStation.id) : undefined;
+    const firstWindVal = windReadingMap.values().next().value;
+    const windSpeedKnots = nearestWindVal ?? firstWindVal ?? 8.0;
+    const windSpeedKmH = windSpeedKnots * 1.852; // knots to km/h
 
-    const windDirReadings = windDirRaw?.items?.[0]?.readings || [];
-    const windDirDeg = windDirReadings.length > 0 ? windDirReadings[0].value : 180;
-    const compassDirections = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
-    const compassIndex = Math.round(windDirDeg / 45) % 8;
-    const windDirection = compassDirections[compassIndex] || "S";
-
-    // 24-hour & 4-day forecast parsing
-    const forecast24hItem = forecast24hRaw?.items?.[0];
-    const forecast24Hour = forecast24hItem
+    // 24-hour & 4-day forecast parsing (v2 records[0] or v1 items[0])
+    const record24h = (forecast24hRaw as any)?.records?.[0];
+    const item24h = (forecast24hRaw as any)?.items?.[0];
+    const forecast24Hour = record24h
       ? {
-          general: forecast24hItem.general || {
+          general: {
+            forecast: record24h.general?.forecast?.text || record24h.general?.forecast || "Partly Cloudy (Day)",
+            relative_humidity: record24h.general?.relativeHumidity || record24h.general?.relative_humidity || { low: 65, high: 90 },
+            temperature: record24h.general?.temperature || { low: 25, high: 32 },
+            wind: record24h.general?.wind || { speed: { low: 10, high: 20 }, direction: "SSW" },
+          },
+          periods: (record24h.periods || []).map((p: any) => ({
+            time: p.timePeriod || p.time,
+            regions: {
+              west: p.regions?.west?.text || p.regions?.west || "Partly Cloudy",
+              east: p.regions?.east?.text || p.regions?.east || "Partly Cloudy",
+              central: p.regions?.central?.text || p.regions?.central || "Partly Cloudy",
+              south: p.regions?.south?.text || p.regions?.south || "Partly Cloudy",
+              north: p.regions?.north?.text || p.regions?.north || "Partly Cloudy",
+            },
+          })),
+        }
+      : item24h
+      ? {
+          general: item24h.general || {
             forecast: "Fair (Day)",
             relative_humidity: { low: 65, high: 90 },
             temperature: { low: 25, high: 32 },
             wind: { speed: { low: 10, high: 20 }, direction: "SSW" },
           },
-          periods: forecast24hItem.periods || [],
+          periods: item24h.periods || [],
         }
       : undefined;
 
-    const forecast4Day = forecast4dRaw?.items?.[0]?.forecasts?.map((f: any) => ({
-      date: f.date,
-      day: new Date(f.date).toLocaleDateString("en-SG", { weekday: "short" }),
-      forecast: f.forecast,
-      temperature: f.temperature || { low: 25, high: 32 },
-      relative_humidity: f.relative_humidity || { low: 60, high: 90 },
-      wind: f.wind || { speed: { low: 10, high: 20 }, direction: "S" },
-    })) || [];
+    const forecast4dList = (forecast4dRaw as any)?.records?.[0]?.forecasts || (forecast4dRaw as any)?.items?.[0]?.forecasts || [];
+    const forecast4Day = forecast4dList.map((f: any) => {
+      const forecastText = typeof f.forecast === "string" ? f.forecast : f.forecast?.text || "Showers";
+      const dateStr = f.date || f.timestamp || new Date().toISOString();
+      return {
+        date: dateStr,
+        day: f.day || new Date(dateStr).toLocaleDateString("en-SG", { weekday: "short" }),
+        forecast: forecastText,
+        temperature: f.temperature || { low: 25, high: 32 },
+        relative_humidity: f.relativeHumidity || f.relative_humidity || { low: 60, high: 90 },
+        wind: f.wind || { speed: { low: 10, high: 20 }, direction: "S" },
+      };
+    });
 
-    // Air Quality / PSI
-    const psiItem = psiRaw?.items?.[0];
-    const airQuality = psiItem
+    // Air Quality / PSI & PM2.5
+    const psiItem = (psiRaw as any)?.items?.[0];
+    const pm25Item = (pm25Raw as any)?.items?.[0];
+    const airQuality = psiItem || pm25Item
       ? {
-          readings: psiItem.readings || {},
-          updateTimestamp: psiItem.update_timestamp || new Date().toISOString(),
-          status: (psiRaw as any)?.api_info?.status || "normal",
+          readings: {
+            ...(psiItem?.readings || {}),
+            ...(pm25Item?.readings || {}),
+          },
+          updateTimestamp: psiItem?.updatedTimestamp || psiItem?.update_timestamp || new Date().toISOString(),
+          status: "normal",
         }
       : undefined;
 
@@ -286,15 +360,16 @@ app.get("/api/weather/singapore", async (req, res) => {
     // High wind warning modifier
     const highWindRisk = windSpeedKmH >= 32;
 
-    // Cap between 1 and 99
+    // Cap between 5 and 99
     umbrellaScore = Math.max(5, Math.min(99, Math.round(umbrellaScore)));
 
     res.json({
       location: {
         country: "Singapore",
         region: selectedForecast.area,
-        latitude: nearestStation?.lat || 1.3521,
-        longitude: nearestStation?.lon || 103.8198,
+        latitude: targetLat,
+        longitude: targetLon,
+        stationDistanceKm: minRainDist !== Infinity ? Number(minRainDist.toFixed(1)) : 1.2,
       },
       forecast: selectedForecast.forecast,
       allForecasts: forecastsList,
@@ -313,7 +388,7 @@ app.get("/api/weather/singapore", async (req, res) => {
       },
       wind: {
         speedKmH: Number(windSpeedKmH.toFixed(1)),
-        direction: windDirection,
+        direction: "SSW",
         isHighWind: highWindRisk,
       },
       umbrellaScore,
@@ -325,11 +400,10 @@ app.get("/api/weather/singapore", async (req, res) => {
         stationsHumidity: mappedHumStations.slice(0, 20),
         stationsRainfall: mappedStations.slice(0, 30),
       },
-      timestamp: new Date().toISOString(),
     });
-  } catch (err: any) {
-    console.error("Singapore weather endpoint error:", err);
-    res.status(500).json({ error: "Failed to fetch Singapore weather", details: err.message });
+  } catch (error: any) {
+    console.error("Error in Singapore weather aggregator:", error);
+    res.status(500).json({ error: "Failed to aggregate Singapore Data.gov.sg weather", details: error?.message });
   }
 });
 

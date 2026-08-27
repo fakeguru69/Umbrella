@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   CloudSun,
   Wind,
@@ -15,6 +15,9 @@ import {
   ExternalLink,
   ChevronRight,
   Info,
+  Car,
+  Navigation,
+  RefreshCw,
 } from "lucide-react";
 import { WeatherData, DayForecast, RegionalForecast24H, AirQualityPsi } from "../types";
 import { sounds } from "../lib/sound";
@@ -24,8 +27,14 @@ interface SingaporeDataGovTelemetryProps {
 }
 
 export const SingaporeDataGovTelemetry: React.FC<SingaporeDataGovTelemetryProps> = ({ weather }) => {
-  const [activeSection, setActiveSection] = useState<"4day" | "24hour" | "psi" | "stations">("4day");
+  const [activeSection, setActiveSection] = useState<"4day" | "24hour" | "psi" | "stations" | "transport">("4day");
   const [stationSearch, setStationSearch] = useState<string>("");
+  
+  // Transport live states
+  const [taxiData, setTaxiData] = useState<{ totalTaxis: number; timestamp?: string } | null>(null);
+  const [carparkData, setCarparkData] = useState<Array<{ carparkNumber: string; totalLots: number; availableLots: number; updateTime: string }>>([]);
+  const [carparkSearch, setCarparkSearch] = useState<string>("");
+  const [transportLoading, setTransportLoading] = useState<boolean>(false);
 
   const dataGov = weather.dataGovSg;
   const forecast4d = dataGov?.forecast4Day || [];
@@ -34,6 +43,51 @@ export const SingaporeDataGovTelemetry: React.FC<SingaporeDataGovTelemetryProps>
   const tempStations = dataGov?.stationsTemperature || [];
   const humStations = dataGov?.stationsHumidity || [];
   const rainStations = dataGov?.stationsRainfall || weather.rainfall.allStations || [];
+
+  // Fetch transport data on demand
+  const loadTransportData = async () => {
+    setTransportLoading(true);
+    try {
+      const [taxiRes, carparkRes] = await Promise.all([
+        fetch("/api/datagov/taxi-availability"),
+        fetch("/api/datagov/carpark-availability"),
+      ]);
+
+      if (taxiRes.ok) {
+        const tJson = await taxiRes.json();
+        const coords = tJson.features?.[0]?.geometry?.coordinates || [];
+        setTaxiData({
+          totalTaxis: coords.length,
+          timestamp: tJson.features?.[0]?.properties?.timestamp || new Date().toISOString(),
+        });
+      }
+
+      if (carparkRes.ok) {
+        const cJson = await carparkRes.json();
+        const rawItems = cJson.items?.[0]?.carpark_data || [];
+        const parsed = rawItems.slice(0, 150).map((cp: any) => {
+          const info = cp.carpark_info?.[0] || {};
+          return {
+            carparkNumber: cp.carpark_number,
+            totalLots: parseInt(info.total_lots || "0", 10),
+            availableLots: parseInt(info.lots_available || "0", 10),
+            updateTime: cp.update_datetime || "",
+          };
+        });
+        setCarparkData(parsed);
+      }
+    } catch (e) {
+      console.error("Failed to load transport telemetry:", e);
+    } finally {
+      setTransportLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeSection === "transport" && !taxiData) {
+      loadTransportData();
+    }
+  }, [activeSection]);
 
   // PSI status indicator
   const getPsiRating = (psiVal: number) => {
@@ -69,6 +123,10 @@ export const SingaporeDataGovTelemetry: React.FC<SingaporeDataGovTelemetryProps>
       humidity: humMatch?.value ?? null,
     };
   }).filter((s) => s.name.toLowerCase().includes(stationSearch.toLowerCase()) || s.id.toLowerCase().includes(stationSearch.toLowerCase()));
+
+  const filteredCarparks = carparkData.filter((c) =>
+    c.carparkNumber.toLowerCase().includes(carparkSearch.toLowerCase())
+  );
 
   return (
     <div
@@ -161,6 +219,22 @@ export const SingaporeDataGovTelemetry: React.FC<SingaporeDataGovTelemetryProps>
           >
             <Thermometer className="w-3.5 h-3.5" />
             <span>ISLANDWIDE SENSORS</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              sounds.playPop();
+              setActiveSection("transport");
+            }}
+            className={`px-3 py-1.5 text-xs font-mono font-black uppercase flex items-center gap-1.5 transition-all cursor-pointer ${
+              activeSection === "transport"
+                ? "bg-[#FFF500] text-[#0040D6] border border-black shadow-[2px_2px_0px_0px_#000000]"
+                : "text-[#FFF500] hover:bg-white/10"
+            }`}
+          >
+            <Car className="w-3.5 h-3.5" />
+            <span>RAIN COMMUTE (LTA)</span>
           </button>
         </div>
       </div>
@@ -417,6 +491,108 @@ export const SingaporeDataGovTelemetry: React.FC<SingaporeDataGovTelemetryProps>
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== SECTION 5: RAIN COMMUTE (LTA TAXIS & CARPARKS) ===================== */}
+      {activeSection === "transport" && (
+        <div className="space-y-5">
+          <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-[#002FA7] border-3 border-[#FFF500]">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-[#FFF500] text-[#0040D6] font-black border border-black text-xl">
+                <Car className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="bg-black text-[#FFF500] text-[10px] font-black px-2 py-0.5 uppercase font-mono">
+                  LTA TRANSPORT TELEMETRY (v1 LIVE)
+                </span>
+                <h4 className="text-base sm:text-lg font-black text-white uppercase font-mono mt-0.5">
+                  WET-WEATHER COMMUTE & SHELTERED PARKING
+                </h4>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={loadTransportData}
+              disabled={transportLoading}
+              className="px-3 py-1.5 bg-[#FFF500] text-[#0040D6] font-mono font-black text-xs border border-black hover:bg-white transition-all cursor-pointer flex items-center gap-1.5"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${transportLoading ? "animate-spin" : ""}`} />
+              <span>REFRESH TRANSPORT</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Taxis Box */}
+            <div className="p-4 bg-neutral-950 border-2 border-[#FFF500] font-mono">
+              <div className="flex items-center justify-between pb-2 mb-3 border-b border-[#FFF500]/30">
+                <span className="font-black text-white text-xs uppercase flex items-center gap-2">
+                  <Navigation className="w-4 h-4 text-[#FFF500]" />
+                  ACTIVE ISLANDWIDE TAXIS
+                </span>
+                <span className="text-[10px] text-emerald-400 font-bold">LIVE GPS FEED</span>
+              </div>
+              <div className="text-center my-3">
+                <span className="text-4xl sm:text-5xl font-black text-[#FFF500] tracking-tight">
+                  {taxiData ? taxiData.totalTaxis.toLocaleString() : "..."}
+                </span>
+                <span className="block mt-1 text-xs uppercase text-slate-300 font-bold">
+                  Available Taxis on Singapore Roads
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 leading-relaxed pt-2 border-t border-[#FFF500]/30">
+                Live stream from Land Transport Authority (LTA) taxi location feeds. During heavy rain and thundery showers, taxi availability drops rapidly near transit hubs.
+              </p>
+            </div>
+
+            {/* Carparks Box Overview */}
+            <div className="p-4 bg-neutral-950 border-2 border-[#FFF500] font-mono">
+              <div className="flex items-center justify-between pb-2 mb-3 border-b border-[#FFF500]/30">
+                <span className="font-black text-white text-xs uppercase flex items-center gap-2">
+                  <Car className="w-4 h-4 text-[#FFF500]" />
+                  SHELTERED / HDB CARPARKS
+                </span>
+                <span className="text-[10px] text-[#FFF500] font-bold">
+                  {carparkData.length} ACTIVE LOTS
+                </span>
+              </div>
+
+              <div className="relative mb-3">
+                <Search className="w-3.5 h-3.5 text-[#FFF500] absolute left-2.5 top-2.5" />
+                <input
+                  type="text"
+                  value={carparkSearch}
+                  onChange={(e) => setCarparkSearch(e.target.value)}
+                  placeholder="Filter carpark code (e.g. HE12, HLM, BL1)..."
+                  className="w-full pl-8 pr-2 py-1.5 bg-black border border-[#FFF500] text-xs font-mono text-[#FFF500] focus:outline-hidden"
+                />
+              </div>
+
+              <div className="max-h-40 overflow-y-auto border border-[#FFF500]/40 text-xs">
+                <table className="w-full text-left">
+                  <thead className="bg-[#002FA7] text-[#FFF500] text-[10px] uppercase sticky top-0">
+                    <tr>
+                      <th className="p-1.5">CARPARK</th>
+                      <th className="p-1.5 text-right">AVAILABLE</th>
+                      <th className="p-1.5 text-right">TOTAL</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-900 bg-black">
+                    {filteredCarparks.slice(0, 20).map((cp, idx) => (
+                      <tr key={idx} className="hover:bg-[#002FA7]/30">
+                        <td className="p-1.5 font-bold text-white">{cp.carparkNumber}</td>
+                        <td className="p-1.5 text-right font-black text-emerald-400">
+                          {cp.availableLots}
+                        </td>
+                        <td className="p-1.5 text-right text-slate-400">{cp.totalLots}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       )}

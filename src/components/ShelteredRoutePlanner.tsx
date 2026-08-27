@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Footprints,
   Navigation,
@@ -24,6 +24,10 @@ export const ShelteredRoutePlanner: React.FC<ShelteredRoutePlannerProps> = ({
 }) => {
   const [fromLocation, setFromLocation] = useState(`${currentArea} MRT`);
   const [toLocation, setToLocation] = useState("Kopitiam / Mall");
+
+  useEffect(() => {
+    setFromLocation(`${currentArea} MRT`);
+  }, [currentArea]);
   const [generatedRoute, setGeneratedRoute] = useState<{
     shelterCoverage: number;
     steps: Array<{ title: string; desc: string; sheltered: boolean; icon: string }>;
