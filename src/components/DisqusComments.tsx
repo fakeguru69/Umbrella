@@ -20,33 +20,41 @@ export function DisqusComments({
   pageTitle = "Umbrella Oracler Singapore Weather & Brolly Community",
 }: DisqusCommentsProps) {
   useEffect(() => {
-    // Configure Disqus parameters
-    window.disqus_config = function (this: any) {
-      this.page = this.page || {};
-      this.page.url = window.location.href;
-      this.page.identifier = pageIdentifier;
-      this.page.title = pageTitle;
-    };
+    try {
+      // Configure Disqus parameters
+      window.disqus_config = function (this: any) {
+        this.page = this.page || {};
+        this.page.url = window.location.href;
+        this.page.identifier = pageIdentifier;
+        this.page.title = pageTitle;
+      };
 
-    // If DISQUS already loaded, reset and reload comments for current config
-    if (window.DISQUS) {
-      window.DISQUS.reset({
-        reload: true,
-        config: window.disqus_config,
-      });
-      return;
-    }
+      // If DISQUS already loaded, reset and reload comments for current config
+      if (window.DISQUS && typeof window.DISQUS.reset === "function") {
+        window.DISQUS.reset({
+          reload: true,
+          config: window.disqus_config,
+        });
+        return;
+      }
 
-    // Otherwise inject embed script
-    const scriptId = "disqus-embed-script";
-    if (!document.getElementById(scriptId)) {
-      const d = document;
-      const s = d.createElement("script");
-      s.id = scriptId;
-      s.src = "https://umbrella-4.disqus.com/embed.js";
-      s.setAttribute("data-timestamp", String(+new Date()));
-      s.async = true;
-      (d.head || d.body).appendChild(s);
+      // Otherwise inject embed script
+      const scriptId = "disqus-embed-script";
+      if (!document.getElementById(scriptId)) {
+        const d = document;
+        const s = d.createElement("script");
+        s.id = scriptId;
+        s.src = "https://umbrella-4.disqus.com/embed.js";
+        s.setAttribute("data-timestamp", String(+new Date()));
+        s.async = true;
+        s.crossOrigin = "anonymous";
+        s.onerror = (err) => {
+          console.warn("Disqus embed could not be loaded in current environment:", err);
+        };
+        (d.head || d.body).appendChild(s);
+      }
+    } catch (err) {
+      console.warn("Disqus script initialization warning:", err);
     }
   }, [pageIdentifier, pageTitle]);
 

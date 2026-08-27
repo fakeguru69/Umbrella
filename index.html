@@ -8,6 +8,26 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700;800;900&family=Outfit:wght@700;800;900&family=Plus+Jakarta+Sans:wght@600;700;800&family=Syne:wght@700;800;900&display=swap" rel="stylesheet">
+    <script type="text/javascript">
+      try {
+        (function(c,l,a,r,i,t,y){
+          c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+          t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+          t.onerror=function(){ /* ignore third party tracking load failures */ };
+          y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        })(window, document, "clarity", "script", "y8vbsfsaeg");
+      } catch (e) {
+        console.warn("Clarity analytics initialization skipped:", e);
+      }
+
+      // Safeguard against unhandled third-party cross-origin script errors in sandboxed iframes
+      window.addEventListener("error", function (e) {
+        if (e && (e.message === "Script error." || !e.filename)) {
+          // Cross-origin script error from external embeds/analytics; prevent uncaught bubbling
+          return true;
+        }
+      });
+    </script>
   </head>
   <body class="bg-[#0040D6] text-[#FFF500] antialiased selection:bg-[#FFF500] selection:text-[#0040D6] font-['Outfit',sans-serif]">
     <div id="root"></div>
