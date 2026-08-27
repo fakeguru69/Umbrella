@@ -511,6 +511,16 @@ export async function computeSingaporeWeather(
     },
     uvIndex: {
       value: Number(latestUv.toFixed(1)),
+      category:
+        latestUv >= 11
+          ? "Extreme"
+          : latestUv >= 8
+          ? "Very High"
+          : latestUv >= 6
+          ? "High"
+          : latestUv >= 3
+          ? "Moderate"
+          : "Low",
       level:
         latestUv >= 11
           ? "Extreme"
@@ -527,9 +537,11 @@ export async function computeSingaporeWeather(
       speedKmH: Number(windSpeedKmH.toFixed(1)),
       direction: "SSW",
       gustsKmH: Number((windSpeedKmH * 1.35).toFixed(1)),
+      isHighWind: highWindRisk,
       highWindRisk,
     },
     umbrellaScore,
+    timestamp: new Date().toISOString(),
     forecast24Hour,
     forecast4Day,
     airQuality,

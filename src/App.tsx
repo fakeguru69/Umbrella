@@ -8,6 +8,7 @@ import { NotificationBanner } from "./components/NotificationBanner";
 import { WindPhysicsSimulator } from "./components/WindPhysicsSimulator";
 import { StationRadarModal } from "./components/StationRadarModal";
 import { ExcuseModal } from "./components/ExcuseModal";
+import { DisqusComments } from "./components/DisqusComments";
 import { WeatherData, AIAdvice, RainStation } from "./types";
 import { initialWeatherData, initialAdviceData } from "./data";
 import { sounds } from "./lib/sound";
@@ -278,6 +279,12 @@ export default function App() {
             onSelectLocation={handleSelectLocation}
           />
         )}
+
+        {/* Disqus Community Thread */}
+        <DisqusComments
+          pageIdentifier="umbrella-oracle-sg"
+          pageTitle="Umbrella Oracler Singapore Weather Community"
+        />
       </main>
 
       {/* Modals & Simulators */}

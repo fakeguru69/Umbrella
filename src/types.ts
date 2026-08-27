@@ -125,19 +125,27 @@ export interface WeatherData {
     amountMm: number;
     stationName: string;
     stationId: string;
+    timestamp?: string;
     allStations?: RainStation[];
   };
   uvIndex: {
     value: number;
     category: "Low" | "Moderate" | "High" | "Very High" | "Extreme";
+    level?: string;
+    hour?: string;
   };
   wind: {
     speedKmH: number;
     direction?: string;
+    gustsKmH?: number;
     isHighWind: boolean;
+    highWindRisk?: boolean;
   };
   umbrellaScore: number; // 1 - 100
   dataGovSg?: DataGovSgData;
+  forecast24Hour?: RegionalForecast24H;
+  forecast4Day?: DayForecast[];
+  airQuality?: AirQualityPsi;
   hourlyForecast?: Array<{
     hour: string;
     prob: number;

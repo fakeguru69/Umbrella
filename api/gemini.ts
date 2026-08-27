@@ -18,23 +18,77 @@ function getGeminiClient(): GoogleGenAI | null {
   return null;
 }
 
+// In-memory cache for roast advice (15-minute TTL)
+interface RoastCacheEntry {
+  timestamp: number;
+  data: any;
+}
+const roastCache = new Map<string, RoastCacheEntry>();
+const ROAST_CACHE_TTL_MS = 15 * 60 * 1000;
+
+// Rate-limiting / quota cooldown tracker to avoid repeating failing calls
+let quotaExhaustedUntil: number = 0;
+
+function getCacheKey(
+  location: string,
+  forecast: string,
+  rainfallMm: number,
+  uvIndex: number,
+  windSpeedKmH: number,
+  umbrellaScore: number
+): string {
+  const rainBucket = Math.round(rainfallMm * 2) / 2; // 0, 0.5, 1.0, etc.
+  const uvBucket = Math.round(uvIndex);
+  const scoreBucket = Math.floor(umbrellaScore / 10) * 10;
+  const windBucket = Math.floor(windSpeedKmH / 5) * 5;
+  return `${location.toLowerCase().trim()}|${forecast.toLowerCase().trim()}|${rainBucket}|${uvBucket}|${windBucket}|${scoreBucket}`;
+}
+
 geminiRouter.post("/roast-and-advice", async (req: Request, res: Response) => {
+  const {
+    location = "Singapore",
+    forecast = "Thundery Showers",
+    rainfallMm = 0.0,
+    uvIndex = 9.0,
+    windSpeedKmH = 15,
+    umbrellaScore = 75,
+  } = req.body || {};
+
+  const cacheKey = getCacheKey(location, forecast, rainfallMm, uvIndex, windSpeedKmH, umbrellaScore);
+  const cached = roastCache.get(cacheKey);
+
+  if (cached && Date.now() - cached.timestamp < ROAST_CACHE_TTL_MS) {
+    return res.json(cached.data);
+  }
+
+  // Check if we are currently in quota cooldown
+  if (Date.now() < quotaExhaustedUntil) {
+    const fallback = generateFallbackQuirkyVerdict(
+      forecast,
+      rainfallMm,
+      uvIndex,
+      windSpeedKmH,
+      umbrellaScore,
+      location
+    );
+    return res.json(fallback);
+  }
+
+  const ai = getGeminiClient();
+
+  if (!ai) {
+    const fallback = generateFallbackQuirkyVerdict(
+      forecast,
+      rainfallMm,
+      uvIndex,
+      windSpeedKmH,
+      umbrellaScore,
+      location
+    );
+    return res.json(fallback);
+  }
+
   try {
-    const {
-      location = "Singapore",
-      forecast = "Thundery Showers",
-      rainfallMm = 0.0,
-      uvIndex = 9.0,
-      windSpeedKmH = 15,
-      umbrellaScore = 75,
-    } = req.body;
-
-    const ai = getGeminiClient();
-
-    if (!ai) {
-      return res.json(generateFallbackQuirkyVerdict(forecast, rainfallMm, uvIndex, windSpeedKmH, umbrellaScore, location));
-    }
-
     const systemInstruction = `You are the AI brain of Umbrella Oracle, the world's most delightfully quirky, brutally honest, and sharp-witted umbrella recommendation engine for Singapore commuters.
 Your mission is to evaluate real-time weather telemetries (Rainfall, UV Index, Wind Speed, 2-Hour Forecast, Umbrella Index) and deliver hilarious, unforgettable verdicts.
 Always return valid JSON adhering strictly to the JSON schema.`;
@@ -67,18 +121,46 @@ Rules:
 
     const text = response.text || "{}";
     const parsed = JSON.parse(text);
+
+    // Save in cache
+    roastCache.set(cacheKey, {
+      timestamp: Date.now(),
+      data: parsed,
+    });
+
     return res.json(parsed);
   } catch (err: any) {
-    console.error("Gemini roast error:", err);
-    const {
-      location = "Singapore",
-      forecast = "Cloudy",
-      rainfallMm = 0,
-      uvIndex = 8,
-      windSpeedKmH = 12,
-      umbrellaScore = 50,
-    } = req.body;
-    return res.json(generateFallbackQuirkyVerdict(forecast, rainfallMm, uvIndex, windSpeedKmH, umbrellaScore, location));
+    const isQuotaError =
+      err?.status === 429 ||
+      err?.status === "RESOURCE_EXHAUSTED" ||
+      err?.message?.includes("quota") ||
+      err?.message?.includes("429") ||
+      err?.message?.includes("RESOURCE_EXHAUSTED");
+
+    if (isQuotaError) {
+      // Cooldown for 60 seconds before trying Gemini again
+      quotaExhaustedUntil = Date.now() + 60 * 1000;
+      console.warn("Gemini API quota rate limit reached, falling back to Singapore quirky advice engine for 60s.");
+    } else {
+      console.error("Gemini roast generation warning:", err?.message || err);
+    }
+
+    const fallback = generateFallbackQuirkyVerdict(
+      forecast,
+      rainfallMm,
+      uvIndex,
+      windSpeedKmH,
+      umbrellaScore,
+      location
+    );
+
+    // Cache fallback briefly (2 mins) to avoid spamming
+    roastCache.set(cacheKey, {
+      timestamp: Date.now(),
+      data: fallback,
+    });
+
+    return res.json(fallback);
   }
 });
 
@@ -100,6 +182,16 @@ export default async function handler(req: any, res: any) {
     windSpeedKmH = 15,
     umbrellaScore = 75,
   } = body;
+
+  const cacheKey = getCacheKey(location, forecast, rainfallMm, uvIndex, windSpeedKmH, umbrellaScore);
+  const cached = roastCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < ROAST_CACHE_TTL_MS) {
+    return res.status(200).json(cached.data);
+  }
+
+  if (Date.now() < quotaExhaustedUntil) {
+    return res.status(200).json(generateFallbackQuirkyVerdict(forecast, rainfallMm, uvIndex, windSpeedKmH, umbrellaScore, location));
+  }
 
   try {
     const ai = getGeminiClient();
@@ -139,8 +231,23 @@ Rules:
 
     const text = response.text || "{}";
     const parsed = JSON.parse(text);
+
+    roastCache.set(cacheKey, {
+      timestamp: Date.now(),
+      data: parsed,
+    });
+
     return res.status(200).json(parsed);
   } catch (err: any) {
+    const isQuotaError =
+      err?.status === 429 ||
+      err?.status === "RESOURCE_EXHAUSTED" ||
+      err?.message?.includes("quota") ||
+      err?.message?.includes("429");
+
+    if (isQuotaError) {
+      quotaExhaustedUntil = Date.now() + 60 * 1000;
+    }
     return res.status(200).json(generateFallbackQuirkyVerdict(forecast, rainfallMm, uvIndex, windSpeedKmH, umbrellaScore, location));
   }
 }
