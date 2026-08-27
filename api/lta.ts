@@ -4,12 +4,22 @@ export const ltaRouter = Router();
 
 // Guardrail: Any API key, token, or credential is read ONLY inside files in the repo-root api/ directory
 function getLtaAccountKey(): string | null {
-  return (
+  const key =
     process.env.LTA_DATAMALL_ACCOUNT_KEY ||
     process.env.LTA_ACCOUNT_KEY ||
     process.env.DATAMALL_ACCOUNT_KEY ||
-    null
-  );
+    null;
+
+  if (
+    !key ||
+    key.trim() === "" ||
+    key.includes("MY_LTA_DATAMALL_ACCOUNT_KEY") ||
+    key.startsWith("MY_") ||
+    key === "your_api_key_here"
+  ) {
+    return null;
+  }
+  return key.trim();
 }
 
 // In-memory cache for LTA endpoints to respect rate limits
@@ -43,15 +53,32 @@ async function fetchLtaData<T>(
       },
     });
 
+    const rawText = await res.text();
+
     if (!res.ok) {
-      const errorText = await res.text();
+      if (rawText.includes("The page cannot be displayed") || rawText.includes("<html") || rawText.includes("<!DOCTYPE")) {
+        return {
+          status: res.status === 200 ? 401 : res.status,
+          error: `LTA DataMall rejected the request (${res.status}). Please verify that your LTA_DATAMALL_ACCOUNT_KEY is valid.`,
+        };
+      }
       return {
         status: res.status,
-        error: `LTA DataMall API responded with status ${res.status}: ${errorText}`,
+        error: `LTA DataMall API responded with status ${res.status}: ${rawText.slice(0, 200)}`,
       };
     }
 
-    const json = (await res.json()) as T;
+    // Attempt JSON parse safely
+    let json: T;
+    try {
+      json = JSON.parse(rawText) as T;
+    } catch (parseErr: any) {
+      return {
+        status: 502,
+        error: `LTA DataMall returned an unexpected non-JSON response. Please verify that your LTA_DATAMALL_ACCOUNT_KEY is active and valid at datamall.lta.gov.sg`,
+      };
+    }
+
     ltaCache[cacheKey] = { timestamp: now, data: json };
     return { data: json, status: 200 };
   } catch (err: any) {

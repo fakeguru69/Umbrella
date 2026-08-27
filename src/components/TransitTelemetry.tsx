@@ -102,11 +102,16 @@ export const TransitTelemetry: React.FC = () => {
       if (svc.trim()) url += `&ServiceNo=${encodeURIComponent(svc.trim())}`;
 
       const res = await fetch(url);
-      const data = await res.json();
+      let data: any;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error("Received non-JSON response from server");
+      }
 
       if (!res.ok) {
-        if (data?.error === "credential not configured") {
-          setBusError("LTA_DATAMALL_ACCOUNT_KEY is not configured in secrets. Add your free key to enable live bus radar.");
+        if (data?.error?.includes("credential not configured") || res.status === 500) {
+          setBusError("LTA_DATAMALL_ACCOUNT_KEY is not configured in project secrets. Add your free key from datamall.lta.gov.sg to enable live bus telemetry.");
         } else {
           setBusError(data?.error || `HTTP ${res.status} Error`);
         }
@@ -128,10 +133,16 @@ export const TransitTelemetry: React.FC = () => {
     setCarparkError(null);
     try {
       const res = await fetch("/api/lta/carparks");
-      const data = await res.json();
+      let data: any;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error("Received non-JSON response from server");
+      }
+
       if (!res.ok) {
-        if (data?.error === "credential not configured") {
-          setCarparkError("LTA_DATAMALL_ACCOUNT_KEY is not configured. Add your key to view live sheltered lots.");
+        if (data?.error?.includes("credential not configured") || res.status === 500) {
+          setCarparkError("LTA_DATAMALL_ACCOUNT_KEY is not configured in project secrets. Add your free key to view live sheltered lots.");
         } else {
           setCarparkError(data?.error || `HTTP ${res.status} Error`);
         }
@@ -152,10 +163,16 @@ export const TransitTelemetry: React.FC = () => {
     setTrafficError(null);
     try {
       const res = await fetch("/api/lta/traffic-incidents");
-      const data = await res.json();
+      let data: any;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error("Received non-JSON response from server");
+      }
+
       if (!res.ok) {
-        if (data?.error === "credential not configured") {
-          setTrafficError("LTA_DATAMALL_ACCOUNT_KEY is not configured.");
+        if (data?.error?.includes("credential not configured") || res.status === 500) {
+          setTrafficError("LTA_DATAMALL_ACCOUNT_KEY is not configured in project secrets.");
         } else {
           setTrafficError(data?.error || `HTTP ${res.status} Error`);
         }
@@ -176,10 +193,16 @@ export const TransitTelemetry: React.FC = () => {
     setTrainError(null);
     try {
       const res = await fetch("/api/lta/train-alerts");
-      const data = await res.json();
+      let data: any;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error("Received non-JSON response from server");
+      }
+
       if (!res.ok) {
-        if (data?.error === "credential not configured") {
-          setTrainError("LTA_DATAMALL_ACCOUNT_KEY is not configured.");
+        if (data?.error?.includes("credential not configured") || res.status === 500) {
+          setTrainError("LTA_DATAMALL_ACCOUNT_KEY is not configured in project secrets.");
         } else {
           setTrainError(data?.error || `HTTP ${res.status} Error`);
         }
