@@ -24,9 +24,13 @@ import { sounds } from "../lib/sound";
 
 interface SingaporeDataGovTelemetryProps {
   weather: WeatherData;
+  onSelectLocation?: (area: string, isCoord?: boolean, lat?: number, lon?: number) => void;
 }
 
-export const SingaporeDataGovTelemetry: React.FC<SingaporeDataGovTelemetryProps> = ({ weather }) => {
+export const SingaporeDataGovTelemetry: React.FC<SingaporeDataGovTelemetryProps> = ({
+  weather,
+  onSelectLocation,
+}) => {
   const [activeSection, setActiveSection] = useState<"4day" | "24hour" | "psi" | "stations" | "transport">("4day");
   const [stationSearch, setStationSearch] = useState<string>("");
   
@@ -467,11 +471,24 @@ export const SingaporeDataGovTelemetry: React.FC<SingaporeDataGovTelemetryProps>
                   <th className="p-2.5 text-right">RAINFALL (5-MIN)</th>
                   <th className="p-2.5 text-right">TEMPERATURE</th>
                   <th className="p-2.5 text-right">HUMIDITY</th>
+                  {onSelectLocation && <th className="p-2.5 text-right">ACTION</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-800 bg-neutral-950">
                 {mergedStations.map((st, idx) => (
-                  <tr key={idx} className="hover:bg-[#002FA7]/30 transition-colors">
+                  <tr
+                    key={idx}
+                    onClick={() => {
+                      if (onSelectLocation) {
+                        onSelectLocation(st.name, true, st.lat, st.lon);
+                        sounds.playPop();
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }
+                    }}
+                    className={`transition-colors ${
+                      onSelectLocation ? "cursor-pointer hover:bg-[#002FA7]/50" : "hover:bg-[#002FA7]/30"
+                    }`}
+                  >
                     <td className="p-2.5">
                       <span className="font-bold text-white uppercase">{st.name}</span>
                       <span className="block text-[10px] text-slate-400">#{st.id}</span>
@@ -487,6 +504,13 @@ export const SingaporeDataGovTelemetry: React.FC<SingaporeDataGovTelemetryProps>
                     <td className="p-2.5 text-right font-bold text-[#FFF500]">
                       {st.humidity !== null ? `${st.humidity.toFixed(0)}%` : "-"}
                     </td>
+                    {onSelectLocation && (
+                      <td className="p-2.5 text-right">
+                        <span className="inline-block px-2 py-0.5 bg-[#FFF500] text-[#0040D6] font-mono font-black text-[10px] uppercase border border-black hover:bg-white">
+                          SWITCH
+                        </span>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

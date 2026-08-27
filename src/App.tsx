@@ -43,6 +43,9 @@ export default function App() {
         if (!res.ok) throw new Error("Weather fetch failed");
         const data: WeatherData = await res.json();
         setWeather(data);
+        if (data.location?.region) {
+          setCurrentArea(data.location.region);
+        }
         setBannerDismissed(false);
 
         // If score > 50 and notifications enabled, trigger chime/alert
@@ -224,7 +227,12 @@ export default function App() {
         />
 
         {/* data.gov.sg National Environmental & Weather Telemetry (4-Day Outlook, 24-Hr Matrix, PSI & PM2.5, Islandwide Sensors) */}
-        {weather && <SingaporeDataGovTelemetry weather={weather} />}
+        {weather && (
+          <SingaporeDataGovTelemetry
+            weather={weather}
+            onSelectLocation={handleSelectLocation}
+          />
+        )}
       </main>
 
       {/* Modals & Simulators */}
@@ -236,7 +244,7 @@ export default function App() {
             stations={weather.rainfall.allStations || []}
             activeStationId={weather.rainfall.stationId}
             onSelectStation={(st: RainStation) => {
-              fetchWeatherTelemetry(st.name, st.lat, st.lon);
+              handleSelectLocation(st.name, true, st.lat, st.lon);
             }}
           />
 

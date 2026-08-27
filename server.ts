@@ -53,6 +53,53 @@ const defaultStations = [
   { id: "S108", name: "Tampines", lat: 1.3533, lon: 103.9452, rainfall: 2.2 },
 ];
 
+const SG_POPULAR_AREAS_MAP: Record<string, { neaArea: string; lat: number; lon: number; displayName: string }> = {
+  "marina bay": { neaArea: "City", lat: 1.2838, lon: 103.8591, displayName: "Marina Bay" },
+  "orchard": { neaArea: "Tanglin", lat: 1.3048, lon: 103.8318, displayName: "Orchard" },
+  "somerset": { neaArea: "Tanglin", lat: 1.3003, lon: 103.8385, displayName: "Somerset" },
+  "dhoby ghaut": { neaArea: "City", lat: 1.2989, lon: 103.8457, displayName: "Dhoby Ghaut" },
+  "raffles place": { neaArea: "City", lat: 1.2830, lon: 103.8519, displayName: "Raffles Place" },
+  "bugis": { neaArea: "City", lat: 1.3006, lon: 103.8558, displayName: "Bugis" },
+  "chinatown": { neaArea: "City", lat: 1.2843, lon: 103.8437, displayName: "Chinatown" },
+  "tanjong pagar": { neaArea: "City", lat: 1.2764, lon: 103.8456, displayName: "Tanjong Pagar" },
+  "harbourfront": { neaArea: "Bukit Merah", lat: 1.2653, lon: 103.8219, displayName: "HarbourFront" },
+  "sentosa": { neaArea: "Sentosa", lat: 1.2494, lon: 103.8303, displayName: "Sentosa" },
+  "east coast": { neaArea: "Marine Parade", lat: 1.3048, lon: 103.9200, displayName: "East Coast" },
+  "katong": { neaArea: "Marine Parade", lat: 1.3020, lon: 103.9070, displayName: "Katong" },
+  "joo chiat": { neaArea: "Marine Parade", lat: 1.3120, lon: 103.9020, displayName: "Joo Chiat" },
+  "holland village": { neaArea: "Queenstown", lat: 1.3113, lon: 103.7961, displayName: "Holland Village" },
+  "buona vista": { neaArea: "Queenstown", lat: 1.3073, lon: 103.7900, displayName: "Buona Vista" },
+  "one-north": { neaArea: "Queenstown", lat: 1.2996, lon: 103.7874, displayName: "One-North" },
+  "kent ridge": { neaArea: "Queenstown", lat: 1.2934, lon: 103.7845, displayName: "Kent Ridge" },
+  "nus": { neaArea: "Clementi", lat: 1.2966, lon: 103.7764, displayName: "NUS" },
+  "west coast": { neaArea: "Clementi", lat: 1.2931, lon: 103.7663, displayName: "West Coast" },
+  "jurong point": { neaArea: "Jurong West", lat: 1.3400, lon: 103.7060, displayName: "Jurong Point" },
+  "boon lay": { neaArea: "Boon Lay", lat: 1.3040, lon: 103.7010, displayName: "Boon Lay" },
+  "ntu": { neaArea: "Jurong West", lat: 1.3483, lon: 103.6831, displayName: "NTU" },
+  "jurong east": { neaArea: "Jurong East", lat: 1.3329, lon: 103.7436, displayName: "Jurong East" },
+  "changi airport": { neaArea: "Changi", lat: 1.3644, lon: 103.9915, displayName: "Changi Airport" },
+  "jewel": { neaArea: "Changi", lat: 1.3602, lon: 103.9898, displayName: "Jewel Changi" },
+  "simei": { neaArea: "Tampines", lat: 1.3431, lon: 103.9533, displayName: "Simei" },
+  "newton": { neaArea: "Novena", lat: 1.3129, lon: 103.8380, displayName: "Newton" },
+  "balestier": { neaArea: "Novena", lat: 1.3262, lon: 103.8519, displayName: "Balestier" },
+  "macritchie": { neaArea: "Central Water Catchment", lat: 1.3424, lon: 103.8344, displayName: "MacRitchie" },
+  "upper thomson": { neaArea: "Bishan", lat: 1.3544, lon: 103.8338, displayName: "Upper Thomson" },
+  "khatib": { neaArea: "Yishun", lat: 1.4172, lon: 103.8329, displayName: "Khatib" },
+  "potong pasir": { neaArea: "Toa Payoh", lat: 1.3314, lon: 103.8690, displayName: "Potong Pasir" },
+  "bidadari": { neaArea: "Toa Payoh", lat: 1.3370, lon: 103.8680, displayName: "Bidadari" },
+  "kaki bukit": { neaArea: "Bedok", lat: 1.3353, lon: 103.9080, displayName: "Kaki Bukit" },
+  "ubi": { neaArea: "Geylang", lat: 1.3298, lon: 103.8994, displayName: "Ubi" },
+  "macpherson": { neaArea: "Geylang", lat: 1.3260, lon: 103.8890, displayName: "MacPherson" },
+  "sports hub": { neaArea: "Kallang", lat: 1.3032, lon: 103.8749, displayName: "Sports Hub" },
+  "stadium": { neaArea: "Kallang", lat: 1.3028, lon: 103.8753, displayName: "Stadium" },
+  "waterway point": { neaArea: "Punggol", lat: 1.4067, lon: 103.9022, displayName: "Waterway Point" },
+  "compassvale": { neaArea: "Sengkang", lat: 1.3917, lon: 103.8974, displayName: "Compassvale" },
+  "buangkok": { neaArea: "Sengkang", lat: 1.3829, lon: 103.8931, displayName: "Buangkok" },
+  "kovan": { neaArea: "Hougang", lat: 1.3601, lon: 103.8850, displayName: "Kovan" },
+  "bukit gombak": { neaArea: "Bukit Batok", lat: 1.3587, lon: 103.7519, displayName: "Bukit Gombak" },
+  "hillview": { neaArea: "Bukit Batok", lat: 1.3623, lon: 103.7674, displayName: "Hillview" },
+};
+
 // Helper: Calculate distance
 function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371; // Radius of earth in km
@@ -150,23 +197,74 @@ app.get("/api/weather/singapore", async (req, res) => {
     const areaMetaList: Array<{ name: string; label_location?: { latitude: number; longitude: number }; labelLocation?: { latitude: number; longitude: number } }> =
       (forecastRaw as any)?.area_metadata || [];
 
-    let selectedForecast = forecastsList.find(
-      (f) => f.area.toLowerCase() === areaQuery.toLowerCase()
-    ) || forecastsList.find(
-      (f) => f.area.toLowerCase().includes(areaQuery.toLowerCase()) || areaQuery.toLowerCase().includes(f.area.toLowerCase())
-    ) || forecastsList[0];
+    // Match selected forecast and target coordinates
+    let selectedForecast = forecastsList[0];
+    let displayRegion = areaQuery;
+    let targetLat = 1.34039;
+    let targetLon = 103.705;
 
-    const areaMeta = areaMetaList.find(
-      (a) => a.name.toLowerCase() === selectedForecast.area.toLowerCase()
-    ) || areaMetaList.find(
-      (a) => a.name.toLowerCase().includes(selectedForecast.area.toLowerCase()) || selectedForecast.area.toLowerCase().includes(a.name.toLowerCase())
-    );
+    const normalizedQuery = areaQuery.trim().toLowerCase();
 
-    const areaLat = areaMeta?.label_location?.latitude || areaMeta?.labelLocation?.latitude || 1.34039;
-    const areaLon = areaMeta?.label_location?.longitude || areaMeta?.labelLocation?.longitude || 103.705;
+    // 1. If GPS coordinates are provided, find closest NEA area by distance
+    if (!isNaN(userLat) && !isNaN(userLon)) {
+      targetLat = userLat;
+      targetLon = userLon;
 
-    const targetLat = !isNaN(userLat) ? userLat : areaLat;
-    const targetLon = !isNaN(userLon) ? userLon : areaLon;
+      let closestAreaName = forecastsList[0]?.area || "Jurong West";
+      let minMetaDist = Infinity;
+
+      for (const meta of areaMetaList) {
+        const mLat = meta.label_location?.latitude ?? meta.labelLocation?.latitude;
+        const mLon = meta.label_location?.longitude ?? meta.labelLocation?.longitude;
+        if (typeof mLat === "number" && typeof mLon === "number") {
+          const dist = getDistanceFromLatLonInKm(userLat, userLon, mLat, mLon);
+          if (dist < minMetaDist) {
+            minMetaDist = dist;
+            closestAreaName = meta.name;
+          }
+        }
+      }
+
+      selectedForecast =
+        forecastsList.find((f) => f.area.toLowerCase() === closestAreaName.toLowerCase()) ||
+        forecastsList[0];
+      displayRegion = areaQuery && areaQuery !== "My GPS Location" && areaQuery !== "Nearby GPS Sensor"
+        ? areaQuery
+        : selectedForecast.area;
+    }
+    // 2. If matched in popular landmarks & alias dictionary
+    else if (SG_POPULAR_AREAS_MAP[normalizedQuery]) {
+      const mapped = SG_POPULAR_AREAS_MAP[normalizedQuery];
+      displayRegion = mapped.displayName;
+      targetLat = mapped.lat;
+      targetLon = mapped.lon;
+
+      selectedForecast =
+        forecastsList.find((f) => f.area.toLowerCase() === mapped.neaArea.toLowerCase()) ||
+        forecastsList.find((f) => f.area.toLowerCase().includes(mapped.neaArea.toLowerCase())) ||
+        forecastsList[0];
+    }
+    // 3. Otherwise, search across the 47 NEA official forecast areas
+    else {
+      const exactMatch = forecastsList.find(
+        (f) => f.area.toLowerCase() === normalizedQuery
+      );
+      const partialMatch = forecastsList.find(
+        (f) => f.area.toLowerCase().includes(normalizedQuery) || normalizedQuery.includes(f.area.toLowerCase())
+      );
+
+      selectedForecast = exactMatch || partialMatch || forecastsList[0];
+      displayRegion = exactMatch ? exactMatch.area : (partialMatch ? partialMatch.area : areaQuery);
+
+      const areaMeta = areaMetaList.find(
+        (a) => a.name.toLowerCase() === selectedForecast.area.toLowerCase()
+      ) || areaMetaList.find(
+        (a) => a.name.toLowerCase().includes(selectedForecast.area.toLowerCase()) || selectedForecast.area.toLowerCase().includes(a.name.toLowerCase())
+      );
+
+      targetLat = areaMeta?.label_location?.latitude || areaMeta?.labelLocation?.latitude || 1.34039;
+      targetLon = areaMeta?.label_location?.longitude || areaMeta?.labelLocation?.longitude || 103.705;
+    }
 
     // Helper to extract readings map across v2 ({stationId, value} in readings[0].data) or v1 ({station_id, value} in readings[0].readings)
     const extractReadingsMap = (raw: any): Map<string, number> => {
@@ -366,7 +464,7 @@ app.get("/api/weather/singapore", async (req, res) => {
     res.json({
       location: {
         country: "Singapore",
-        region: selectedForecast.area,
+        region: displayRegion,
         latitude: targetLat,
         longitude: targetLon,
         stationDistanceKm: minRainDist !== Infinity ? Number(minRainDist.toFixed(1)) : 1.2,
